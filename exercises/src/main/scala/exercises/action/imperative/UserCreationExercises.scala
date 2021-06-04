@@ -14,23 +14,20 @@ import scala.util.{Failure, Success, Try}
 object UserCreationApp extends App {
   import UserCreationExercises._
 
-  readUser()
+//   readUser()
 }
 
 object UserCreationExercises {
   // use the 'uuuu' to avoid bad handling of negative years in conversion. It's a better default
   val dateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-uuuu")
 
-  case class User(name: String, dateOfBirth: LocalDate, createdAt: Instant)
-
-  def readUser(): User = {
-    println("What's your name?")
-    val name = StdIn.readLine()
-    println("What's your date of birth? [dd-mm-yyyy]")
-    val dateOfBirth = LocalDate.parse(StdIn.readLine(), dateOfBirthFormatter)
-    val now         = Instant.now()
-    val user        = User(name, dateOfBirth, now)
-    println(s"User is $user")
+  def readUser(console: Console, clock: Clock): User = {
+    val name = readName(console)
+    val dateOfBirth: LocalDate = readDateOfBirth(console)
+    val wantsToSubscribe: Boolean = readSubscribeToMailingList(console)
+    val now = clock.now()
+    val user = User(name, dateOfBirth, wantsToSubscribe, now)
+    console.writeLine(s"User is $user")
     user
   }
 
@@ -114,8 +111,13 @@ object UserCreationExercises {
   // Note: You will need to add `subscribedToMailingList: Boolean` field to `User`.
   // Note: How can you mock the current time? Check the `Clock` class in this package
   //       and update the signature of `readUser`.
-  def readUser(console: Console): User =
-    ???
+  def readName(console: Console): String = {
+    console.writeLine("What's your name?")
+    val name = console.readLine()
+    name
+  }
+
+  case class User(name: String, dateOfBirth: LocalDate, subscribedToMailingList: Boolean, createdAt: Instant)
 
   //////////////////////////////////////////////
   // PART 2: Error handling

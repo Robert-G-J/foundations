@@ -75,17 +75,19 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
     assert(result.isFailure)
   }
 
-  ignore("readUser example") {
+  test("readUser example") {
     val inputs  = ListBuffer("Eda", "18-03-2001", "Y")
     val outputs = ListBuffer.empty[String]
     val console = Console.mock(inputs, outputs)
-    val result  = readUser(console)
+    val now     = Instant.ofEpochSecond(23487234)
+    val clock   = Clock.constant(now)
 
+    val result  = readUser(console, clock)
     val expected = User(
       name = "Eda",
       dateOfBirth = LocalDate.of(2001, 3, 18),
-//      subscribedToMailingList = true,
-      createdAt = Instant.now()
+      subscribedToMailingList = true,
+      createdAt = now
     )
 
     assert(result == expected)
