@@ -7,7 +7,7 @@ import exercises.action.DateGenerator
 import exercises.action.imperative.UserCreationExercises._
 import exercises.action.DateGenerator._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Gen
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
@@ -71,12 +71,12 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
     }
   }
   test("readDateOfBirth example failure") {
-    val arbString: Gen[String] = ArrayIn
-    val invalidDobFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/uuuu")
-    val stringedDateGen = DateGenerator.stringFromDateGen(invalidDobFormatter)
-    // TODO: create a string gen for the separators
-    forAll (stringedDateGen) { (dateOfBirth: String) =>
-      val console = Console.mock(ListBuffer(dateOfBirth), ListBuffer())
+    val separatorGen: Gen[String] = Arbitrary.arbitrary[Char].filterNot(_.isLetterOrDigit).filterNot(_.equals('-')).map(_.toString)
+    
+    forAll (dateGen, separatorGen) { (dateOfBirth: LocalDate, separator: String) =>
+      val invalidDobFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern(s"""dd${separator}MM${separator}uuuu""")
+      val formattedDateOfBirth = invalidDobFormatter.format(dateOfBirth)
+      val console = Console.mock(ListBuffer(formattedDateOfBirth), ListBuffer())
       val result  = Try(readDateOfBirth(console))
 
       assert(result.isFailure)
