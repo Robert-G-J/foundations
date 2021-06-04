@@ -5,6 +5,7 @@ import java.time.{Instant, LocalDate}
 
 import scala.annotation.tailrec
 import scala.io.StdIn
+import scala.io.StdIn.readBoolean
 import scala.util.{Failure, Success, Try}
 
 // Run the App using the green arrow next to object (if using IntelliJ)
@@ -17,7 +18,8 @@ object UserCreationApp extends App {
 }
 
 object UserCreationExercises {
-  val dateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+  // use the 'uuuu' to avoid bad handling of negative years in conversion. It's a better default
+  val dateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-uuuu")
 
   case class User(name: String, dateOfBirth: LocalDate, createdAt: Instant)
 
@@ -44,8 +46,21 @@ object UserCreationExercises {
   // Throws an exception.
   // Note: You can read a user input using `StdIn.readLine()`.
   // Note: You can use `throw new IllegalArgumentException("...")` to throw an exception.
-  def readSubscribeToMailingList(): Boolean =
-    ???
+  def readSubscribeToMailingList(): Boolean = {
+    println("Would you like to subscribe to our mailing list? [Y/N]")
+    val wantsToSubscribe: String = StdIn.readLine()
+    parseYesNo(wantsToSubscribe)
+  }
+
+  val formatYesNo: Boolean => String = (yesNo: Boolean) => if(yesNo == true) "Y" else "N"
+
+  def parseYesNo(wantsToSubscribe: String) = {
+    wantsToSubscribe match {
+      case "Y" => true
+      case "N" => false
+      case other => throw new IllegalArgumentException(s"""Must enter a "Y" or "N" ut received $other""")
+    }
+  }
 
   // 2. How can we test `readSubscribeToMailingList`?
   // We cannot use example-based tests or property-based tests
@@ -56,8 +71,11 @@ object UserCreationExercises {
   // Then, try to test this version using property-based testing.
   // Note: Check the `Console` companion object.
   // Bonus: Try to write a property-based test for `readSubscribeToMailingList`
-  def readSubscribeToMailingList(console: Console): Boolean =
-    ???
+  def readSubscribeToMailingList(console: Console): Boolean = {
+    console.writeLine("Would you like to subscribe to our mailing list? [Y/N]")
+    val wantsToSubscribe = console.readLine()
+    parseYesNo(wantsToSubscribe)
+  }
 
   // 3. Implement `readDateOfBirth` which asks the date of birth of the user.
   // User must answer using the format `dd-mm-yyyy`, e.g. "18-03-2001" for 18th of March 2001.
@@ -71,8 +89,12 @@ object UserCreationExercises {
   // Throws an exception.
   // Note: You can use `LocalDate.parse` to parse a String into a LocalDate.
   // Note: You can use the formatter `dateOfBirthFormatter` (in scope).
-  def readDateOfBirth(console: Console): LocalDate =
-    ???
+  def readDateOfBirth(console: Console): LocalDate = {
+    console.writeLine("What's your date of birth? [dd-mm-yyyy]")
+    val dob: String = console.readLine()
+    val parsedDob   = LocalDate.parse(dob, dateOfBirthFormatter)
+    parsedDob
+  }
 
   // 4. Implement a testable version of `readUser`.
   // For example,
