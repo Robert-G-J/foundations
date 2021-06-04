@@ -1,7 +1,9 @@
 package exercises.action.imperative
 
+import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate}
 
+import exercises.action.DateGenerator
 import exercises.action.imperative.UserCreationExercises._
 import exercises.action.DateGenerator._
 import org.scalacheck.Arbitrary.arbitrary
@@ -61,7 +63,7 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
 
   test("readDateOfBirth example success pbt") {
     forAll { (dateOfBirth: LocalDate) =>
-    val dateString = dateOfBirthFormatter.format(dateOfBirth)
+    val dateString = validDateOfBirthFormatter.format(dateOfBirth)
     val console = Console.mock(ListBuffer(dateString), ListBuffer())
     val result: LocalDate  = readDateOfBirth(console)
 
@@ -69,10 +71,16 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
     }
   }
   test("readDateOfBirth example failure") {
-    val console = Console.mock(ListBuffer("21/07/1986"), ListBuffer())
-    val result  = Try(readDateOfBirth(console))
+    val arbString: Gen[String] = ArrayIn
+    val invalidDobFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/uuuu")
+    val stringedDateGen = DateGenerator.stringFromDateGen(invalidDobFormatter)
+    // TODO: create a string gen for the separators
+    forAll (stringedDateGen) { (dateOfBirth: String) =>
+      val console = Console.mock(ListBuffer(dateOfBirth), ListBuffer())
+      val result  = Try(readDateOfBirth(console))
 
-    assert(result.isFailure)
+      assert(result.isFailure)
+    }
   }
 
   test("readUser example") {

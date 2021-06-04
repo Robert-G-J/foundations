@@ -19,7 +19,7 @@ object UserCreationApp extends App {
 
 object UserCreationExercises {
   // use the 'uuuu' to avoid bad handling of negative years in conversion. It's a better default
-  val dateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-uuuu")
+  val validDateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-uuuu")
 
   def readUser(console: Console, clock: Clock): User = {
     val name = readName(console)
@@ -89,7 +89,7 @@ object UserCreationExercises {
   def readDateOfBirth(console: Console): LocalDate = {
     console.writeLine("What's your date of birth? [dd-mm-yyyy]")
     val dob: String = console.readLine()
-    val parsedDob   = LocalDate.parse(dob, dateOfBirthFormatter)
+    val parsedDob   = LocalDate.parse(dob, validDateOfBirthFormatter)
     parsedDob
   }
 
