@@ -3,16 +3,14 @@ package exercises.action.imperative
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate}
 
-import exercises.action.DateGenerator
 import exercises.action.imperative.UserCreationExercises._
 import exercises.action.DateGenerator._
-import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import scala.collection.mutable.ListBuffer
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 // Run the test using the green arrow next to class name (if using IntelliJ)
 // or run `sbt` in the terminal to open it in shell mode, then type:
@@ -72,7 +70,7 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
   }
   test("readDateOfBirth example failure") {
     val separatorGen: Gen[String] = Arbitrary.arbitrary[Char].filterNot(_.isLetterOrDigit).filterNot(_.equals('-')).map(_.toString)
-    
+
     forAll (dateGen, separatorGen) { (dateOfBirth: LocalDate, separator: String) =>
       val invalidDobFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern(s"""dd${separator}MM${separator}uuuu""")
       val formattedDateOfBirth = invalidDobFormatter.format(dateOfBirth)
@@ -90,7 +88,7 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
     val now     = Instant.ofEpochSecond(23487234)
     val clock   = Clock.constant(now)
 
-    val result  = readUser(console, clock)
+    val result  = readUser(console, clock, 3)
     val expected = User(
       name = "Eda",
       dateOfBirth = LocalDate.of(2001, 3, 18),
@@ -105,14 +103,14 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
   // PART 2: Error handling
   //////////////////////////////////////////////
 
-  ignore("readSubscribeToMailingListRetry negative maxAttempt") {
+  test("readSubscribeToMailingListRetry negative maxAttempt") {
     val console = Console.mock(ListBuffer.empty[String], ListBuffer.empty[String])
     val result  = Try(readSubscribeToMailingListRetry(console, maxAttempt = -1))
 
     assert(result.isFailure)
   }
 
-  ignore("readSubscribeToMailingListRetry example success") {
+  test("readSubscribeToMailingListRetry example success") {
     val outputs = ListBuffer.empty[String]
     val console = Console.mock(ListBuffer("Never", "N"), outputs)
     val result  = readSubscribeToMailingListRetry(console, maxAttempt = 2)
@@ -127,7 +125,7 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
     )
   }
 
-  ignore("readSubscribeToMailingListRetry example invalid input") {
+  test("readSubscribeToMailingListRetry example invalid input") {
     val outputs = ListBuffer.empty[String]
     val console = Console.mock(ListBuffer("Never"), outputs)
     val result  = Try(readSubscribeToMailingListRetry(console, maxAttempt = 1))
@@ -146,14 +144,14 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
     assert(result.failed.get.getMessage == result2.failed.get.getMessage)
   }
 
-  ignore("readDateOfBirthRetry negative maxAttempt") {
+  test("readDateOfBirthRetry negative maxAttempt") {
     val console = Console.mock(ListBuffer.empty[String], ListBuffer.empty[String])
     val result  = Try(readSubscribeToMailingListRetry(console, maxAttempt = -1))
 
     assert(result.isFailure)
   }
 
-  ignore("readDateOfBirthRetry example success") {
+  test("readDateOfBirthRetry example success") {
     val outputs = ListBuffer.empty[String]
     val console = Console.mock(ListBuffer("July 21st 1986", "21-07-1986"), outputs)
     val result  = readDateOfBirthRetry(console, maxAttempt = 2)
@@ -168,7 +166,7 @@ class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropert
     )
   }
 
-  ignore("readDateOfBirthRetry example failure") {
+  test("readDateOfBirthRetry example failure") {
     val outputs        = ListBuffer.empty[String]
     val invalidAttempt = "July 21st 1986"
     val console        = Console.mock(ListBuffer(invalidAttempt), outputs)
