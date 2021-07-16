@@ -1,5 +1,6 @@
 package exercises.action.imperative
 
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
@@ -41,16 +42,40 @@ class ImperativeActionTest extends AnyFunSuite with ScalaCheckDrivenPropertyChec
     assert(counter == 3)
   }
 
-  test("onError when success") {
+  test("onError when failure") {
     var counter = 0
     val error = new Exception("Boom")
 
     val result = Try(onError(() => {
       counter += 1
       throw error
-    }, e => println(s"An error occured: ${e.getMessage}")))
+    }, e => println(s"An error occurred: ${e.getMessage}")))
 
     assert(result == Failure(error))
   }
 
+  test("onError when success") {
+    var counterAction, counterError = 0
+    val result = Try(
+      onError(
+        () => {
+          counterAction += 1
+          "Success"
+        },
+        e => counterError += 1
+      )
+    )
+  }
+
+  test("onError pbt") {
+    forAll {
+      (actionResult: Try[String], cleanupResult: Try[Int]) =>
+        val result = Try(onError(
+          () => actionResult.get,
+          _ => cleanupResult.get
+          )
+        )
+        assert(result == actionResult)
+      }
+  }
 }
