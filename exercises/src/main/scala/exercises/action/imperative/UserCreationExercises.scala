@@ -55,7 +55,7 @@ object UserCreationExercises {
     wantsToSubscribe match {
       case "Y" => true
       case "N" => false
-      case other => throw new IllegalArgumentException(s"""Must enter a "Y" or "N" ut received $other""")
+      case other => throw new IllegalArgumentException(s"""Must enter a "Y" or "N" but received $other""")
     }
   }
 
@@ -141,17 +141,12 @@ object UserCreationExercises {
   // Note: You can implement the retry logic using recursion or a for/while loop. I suggest
   //       trying both possibilities.
   def readSubscribeToMailingListRetry(console: Console, maxAttempt: Int): Boolean = {
-    // retry {thisThing} onerror do thisotherthing
-    // retry {thisThing onerror do thisotherthing}
-    val actionToDo = () => readSubscribeToMailingList(console)
+    val cleanup : (Throwable => Any) = (ex: Throwable) =>
+      console.writeLine(s"""Incorrect format, enter "Y" for Yes or "N" for "No"""")
+    val action = () => readSubscribeToMailingList(console)
+    val retryAction = () => onError(action, cleanup )
 
-    val actionWithCleanup = () => onError(
-      action = actionToDo,
-      // what specific thing do I actually want to clean up?
-      cleanup = (exception) => console.writeLine(s"""Incorrect format, enter "Y" for Yes or "N" for "No"""")
-    )
-
-    retry(maxAttempt)(actionWithCleanup)
+    retry(maxAttempt)(retryAction)
   }
 
   // 6. Implement `readDateOfBirthRetry` which behaves like
@@ -169,18 +164,11 @@ object UserCreationExercises {
   // [Prompt] Incorrect format, for example enter "18-03-2001" for 18th of March 2001
   // Throws an exception because the user only had 1 attempt and they entered an invalid input.
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
-  @tailrec
+//  @tailrec
   def readDateOfBirthRetry(console: Console, maxAttempt: Int): LocalDate = {
-    require(maxAttempt > 0, "maxAttempt must be greater than 0")
-    console.writeLine("What's your date of birth? [dd-mm-yyyy]")
-    val line: String = console.readLine()
-    Try(LocalDate.parse(line, validDateOfBirthFormatter)) match {
-      case Success(dob)       => dob
-      case Failure(exception) =>
-        console.writeLine(s"""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
-        if(maxAttempt == 1) throw exception
-        else readDateOfBirthRetry(console, maxAttempt - 1)
-    }
+    val readAction = () => readDateOfBirth(console)
+    val cleanup = (ex: Throwable) => console.writeLine(s"""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
+      retry(maxAttempt)(() => onError(readAction, cleanup))
   }
 
 
