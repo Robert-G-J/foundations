@@ -34,7 +34,7 @@ trait IO[A] {
   //       Another popular symbol is <* so that `action1 <* action2`
   //       executes `action1` and then `action2` but returns the result of `action1`
   def *>[Other](other: IO[Other]): IO[Other] =
-    ???
+    andThen(other)
 
   // Runs the current action (`this`) and update the result with `callback`.
   // For example,
@@ -44,8 +44,12 @@ trait IO[A] {
   // Fetches the user with id 1234 from the database and returns its name.
   // Note: `callback` is expected to be an FP function (total, deterministic, no action).
   //       Use `flatMap` if `callBack` is not an FP function.
-  def map[Next](callBack: A => Next): IO[Next] =
-    ???
+  def map[Next](callBack: A => Next): IO[Next] = {
+    IO {
+      val result: A = unsafeRun()
+      callBack(result)
+    }
+  }
 
   // Runs the current action (`this`), if it succeeds passes the result to `callback` and
   // runs the second action.
@@ -57,7 +61,11 @@ trait IO[A] {
   // Fetches the user with id 1234 from the database and send them an email using the email
   // address found in the database.
   def flatMap[Next](callback: A => IO[Next]): IO[Next] =
-    ???
+    IO {
+      val result = this.unsafeRun()
+      callback(result).unsafeRun()
+    }
+
 
   // Runs the current action, if it fails it executes `cleanup` and rethrows the original error.
   // If the current action is a success, it will return the result.
