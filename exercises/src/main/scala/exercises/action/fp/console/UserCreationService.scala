@@ -31,10 +31,8 @@ class UserCreationService(console: Console, clock: Clock) {
   // Then, we'll refactor `readName` with `andThen`.
   // Note: You can find tests in `exercises.action.fp.console.UserCreationServiceTest`
   val readName: IO[String] =
-    IO {
-      console.writeLine("What's your name?").unsafeRun()
-      console.readLine.unsafeRun()
-    }
+    console.writeLine("What's your name?") andThen console.readLine
+
 
   // 2. Refactor `readDateOfBirth` so that the code combines the three internal `IO`
   // instead of executing each `IO` one after another using `unsafeRun`.
