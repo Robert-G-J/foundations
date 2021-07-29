@@ -22,7 +22,7 @@ trait IO[A] {
   // Note: There is a test for `andThen` in `exercises.action.fp.IOTest`.
   def andThen[Other](other: IO[Other]): IO[Other] = {
     IO {
-      unsafeRun()
+      this.unsafeRun()
       other.unsafeRun()
     }
   }
