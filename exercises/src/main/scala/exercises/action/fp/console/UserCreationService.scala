@@ -42,7 +42,7 @@ class UserCreationService(console: Console, clock: Clock) {
   val readDateOfBirth: IO[LocalDate] =
     writeLine("What's your date of birth? [dd-mm-yyyy]")
       .andThen(readLine)
-      .flatMap(line => parseDateOfBirth(line))
+      .flatMap(parseDateOfBirth)
 
   // 3. Refactor `readSubscribeToMailingList` and `readUser` using the same techniques as `readDateOfBirth`.
   val readSubscribeToMailingList: IO[Boolean] =
