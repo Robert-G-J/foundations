@@ -32,7 +32,7 @@ class UserCreationService(console: Console, clock: Clock) {
   // Then, we'll refactor `readName` with `andThen`.
   // Note: You can find tests in `exercises.action.fp.console.UserCreationServiceTest`
   val readName: IO[String] =
-    writeLine("What's your name?") andThen readLine
+  writeLine("What's your name?") andThen readLine
 
 
   // 2. Refactor `readDateOfBirth` so that the code combines the three internal `IO`
@@ -40,13 +40,16 @@ class UserCreationService(console: Console, clock: Clock) {
   // For example, try to use `andThen`.
   // If it doesn't work investigate the methods `map` and `flatMap` on the `IO` trait.
   val readDateOfBirth: IO[LocalDate] =
-    writeLine("What's your date of birth? [dd-mm-yyyy]")
-      .andThen(readLine)
-      .flatMap(parseDateOfBirth)
+  for {
+    _ <- writeLine("What's your date of birth? [dd-mm-yyyy]")
+    line <- readLine
+    dob <- parseDateOfBirth(line)
+  } yield dob
+
 
   // 3. Refactor `readSubscribeToMailingList` and `readUser` using the same techniques as `readDateOfBirth`.
   val readSubscribeToMailingList: IO[Boolean] =
-      writeLine("Would you like to subscribe to our mailing list? [Y/N]") andThen readLine.flatMap(parseLineToBoolean)
+    writeLine("Would you like to subscribe to our mailing list? [Y/N]") andThen readLine.flatMap(parseLineToBoolean)
 
   val readUser: IO[User] = {
     val user = readName.flatMap(name =>
