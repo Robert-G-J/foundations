@@ -56,8 +56,7 @@ class UserCreationService(console: Console, clock: Clock) {
             IO {
               User(name, dob, subscribed, now)
             }))))
-    writeLine(s"User is $user")
-    user
+    writeLine(s"User is $user") andThen user
   }
 
   //////////////////////////////////////////////
