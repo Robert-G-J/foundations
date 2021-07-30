@@ -49,18 +49,21 @@ class UserCreationService(console: Console, clock: Clock) {
 
   // 3. Refactor `readSubscribeToMailingList` and `readUser` using the same techniques as `readDateOfBirth`.
   val readSubscribeToMailingList: IO[Boolean] =
-    writeLine("Would you like to subscribe to our mailing list? [Y/N]") andThen readLine.flatMap(parseLineToBoolean)
+    for {
+      _ <- writeLine("Would you like to subscribe to our mailing list? [Y/N]")
+      line <- readLine
+      subscribe <- parseLineToBoolean(line)
+    } yield subscribe
 
-  val readUser: IO[User] = {
-    val user = readName.flatMap(name =>
-      readDateOfBirth.flatMap(dob =>
-        readSubscribeToMailingList.flatMap(subscribed =>
-          clock.now.flatMap(now =>
-            IO {
-              User(name, dob, subscribed, now)
-            }))))
-    writeLine(s"User is $user") andThen user
-  }
+  val readUser: IO[User] =
+    for {
+      name <- readName
+      dob <- readDateOfBirth
+      subscribed <- readSubscribeToMailingList
+      now <- clock.now
+      user = User(name, dob, subscribed, now)
+      _ <- writeLine(s"User is $user")
+    } yield user
 
   //////////////////////////////////////////////
   // PART 2: For Comprehension
