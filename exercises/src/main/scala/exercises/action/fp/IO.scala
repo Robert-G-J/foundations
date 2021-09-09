@@ -105,8 +105,17 @@ trait IO[A] {
   // Returns "Hello" because `action` fails twice and then succeeds when counter reaches 3.
   // Note: `maxAttempt` must be greater than 0, otherwise the `IO` should fail.
   // Note: `retry` is a no-operation when `maxAttempt` is equal to 1.
-  def retry(maxAttempt: Int): IO[A] =
-    ???
+  def retry(maxAttempt: Int): IO[A] = {
+    IO {
+      require(maxAttempt > 0, "maxAttempt must be greater than 0")
+        Try(unsafeRun()) match {
+          case Success(value) => value
+          case Failure(exception)     =>
+            if (maxAttempt == 1) throw exception
+            retry(maxAttempt - 1).unsafeRun()
+        }
+    }
+  }
 
   // Checks if the current IO is a failure or a success.
   // For example,
