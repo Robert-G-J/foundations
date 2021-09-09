@@ -43,21 +43,24 @@ class UserCreationService(console: Console, clock: Clock) {
     (
       for {
         _     <- writeLine("What's your date of birth? [dd-mm-yyyy]")
-        line  <- readLine
-        dob   <- parseDateOfBirth(line)
+        line <- readLine
+        dob <- parseDateOfBirth(line)
       } yield dob
-    )
-     .onError(_ =>  writeLine(s"""Incorrect format, for example enter "18-03-2001" for 18th of March 2001"""))
+      )
+      .onError(_ => writeLine(s"""Incorrect format, for example enter "18-03-2001" for 18th of March 2001"""))
   }
 
 
   // 3. Refactor `readSubscribeToMailingList` and `readUser` using the same techniques as `readDateOfBirth`.
   val readSubscribeToMailingList: IO[Boolean] =
-    for {
+    (for {
       _ <- writeLine("Would you like to subscribe to our mailing list? [Y/N]")
       line <- readLine
       subscribe <- parseLineToBoolean(line)
     } yield subscribe
+      )
+      .onError(_ => writeLine(s"""Incorrect format, enter "Y" for Yes or "N" for "No""""))
+
 
   val readUser: IO[User] =
     for {
