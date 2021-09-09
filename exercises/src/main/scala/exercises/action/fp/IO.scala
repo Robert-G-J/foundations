@@ -78,8 +78,18 @@ trait IO[A] {
   //
   // IO(throw new Exception("Boom!")).onError(logError).unsafeRun()
   // prints "Got an error: Boom!" and throws new Exception("Boom!")
-  def onError[Other](cleanup: Throwable => IO[Other]): IO[A] =
-    ???
+  def onError[Other](cleanup: Throwable => IO[Other]): IO[A] = {
+    IO {
+      Try(
+        unsafeRun()
+      ) match {
+        case Success(value)     =>  value
+        case Failure(exception) =>
+          cleanup(exception).unsafeRun() // have to run it here, else it's just a description of an IO
+          throw exception
+      }
+    }
+  }
 
   // Retries this action until either:
   // * It succeeds.
