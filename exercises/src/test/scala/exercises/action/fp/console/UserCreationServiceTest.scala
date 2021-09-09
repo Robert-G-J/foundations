@@ -69,9 +69,8 @@ class UserCreationServiceTest extends AnyFunSuite with ScalaCheckDrivenPropertyC
       assert(result.isFailure)
       assert(
         outputs.toList == List(
-          "What's your date of birth? [dd-mm-yyyy]"
-          // Uncomment after adding `onError` to `readDateOfBirth`
-          // """Incorrect format, for example enter "18-03-2001" for 18th of March 2001""",
+          "What's your date of birth? [dd-mm-yyyy]",
+           """Incorrect format, for example enter "18-03-2001" for 18th of March 2001""",
         )
       )
     }
