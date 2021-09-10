@@ -40,12 +40,8 @@ trait IO[A] {
   // Fetches the user with id 1234 from the database and returns its name.
   // Note: `callback` is expected to be an FP function (total, deterministic, no action).
   //       Use `flatMap` if `callBack` is not an FP function.
-  def map[Next](callBack: A => Next): IO[Next] = {
-    IO {
-      val result: A = unsafeRun()
-      callBack(result)
-    }
-  }
+  def map[Next](callBack: A => Next): IO[Next] =
+    flatMap(value => IO(callBack(value)))
 
   // Runs the current action (`this`), if it succeeds passes the result to `callback` and
   // runs the second action.
