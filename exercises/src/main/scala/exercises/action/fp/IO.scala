@@ -1,6 +1,9 @@
 package exercises.action.fp
 
 import java.util.concurrent.CountDownLatch
+
+import exercises.action.fp.IO.fail
+
 import scala.annotation.tailrec
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
@@ -21,7 +24,7 @@ trait IO[A] {
   // prints "Fetching user", fetches user 1234 from db and returns it.
   // Note: There is a test for `andThen` in `exercises.action.fp.IOTest`.
   def andThen[Other](other: IO[Other]): IO[Other] =
-      this.flatMap(_ => other)
+    this.flatMap(_ => other)
 
   // Popular alias for `andThen` (cat-effect, Monix, ZIO).
   // For example,
@@ -58,7 +61,6 @@ trait IO[A] {
       callback(result).unsafeRun()
     }
 
-
   // Runs the current action, if it fails it executes `cleanup` and rethrows the original error.
   // If the current action is a success, it will return the result.
   // For example,
@@ -70,18 +72,11 @@ trait IO[A] {
   //
   // IO(throw new Exception("Boom!")).onError(logError).unsafeRun()
   // prints "Got an error: Boom!" and throws new Exception("Boom!")
-  def onError[Other](cleanup: Throwable => IO[Other]): IO[A] = {
-    IO {
-      Try(
-        unsafeRun()
-      ) match {
-        case Success(value)     =>  value
-        case Failure(exception) =>
-          cleanup(exception).unsafeRun() // have to run it here, else it's just a description of an IO
-          throw exception
-      }
+  def onError[Other](cleanup: Throwable => IO[Other]): IO[A] =
+    attempt.flatMap {
+      case Success(value) => IO(value)
+      case Failure(e)     => cleanup(e).andThen(fail(e))
     }
-  }
 
   // Retries this action until either:
   // * It succeeds.
@@ -97,18 +92,22 @@ trait IO[A] {
   // Returns "Hello" because `action` fails twice and then succeeds when counter reaches 3.
   // Note: `maxAttempt` must be greater than 0, otherwise the `IO` should fail.
   // Note: `retry` is a no-operation when `maxAttempt` is equal to 1.
-  def retry(maxAttempt: Int): IO[A] = {
-    IO {
-      require(maxAttempt > 0, "maxAttempt must be greater than 0")
-        Try(unsafeRun()) match {
-          case Success(value) => value
-          case Failure(exception)     =>
-            if (maxAttempt == 1) throw exception
-            retry(maxAttempt - 1).unsafeRun()
-        }
-    }
-  }
+  def retry(maxAttempt: Int): IO[A] =
+    if(maxAttempt <= 0), IO.fail("maxAttempt must be greater than zero")
+    else if(maxAttempt == 1) this
+  else
+    attempt
 
+
+  //    IO {
+  //      require(maxAttempt > 0, "maxAttempt must be greater than 0")
+  //        Try(unsafeRun()) match {
+  //          case Success(value) => value
+  //          case Failure(exception)     =>
+  //            if (maxAttempt == 1) throw exception
+  //            retry(maxAttempt - 1).unsafeRun()
+  //        }
+  //    }}
   // Checks if the current IO is a failure or a success.
   // For example,
   // val action: IO[User] = db.getUser(1234)
@@ -117,7 +116,9 @@ trait IO[A] {
   // 1. Success(User(1234, "Bob", ...)) if `action` was successful or
   // 2. Failure(new Exception("User 1234 not found")) if `action` throws an exception
   def attempt: IO[Try[A]] =
-    ???
+    IO {
+      Try(unsafeRun())
+    }
 
   // If the current IO is a success, do nothing.
   // If the current IO is a failure, execute `callback` and keep its result.
