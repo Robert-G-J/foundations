@@ -93,11 +93,15 @@ trait IO[A] {
   // Note: `maxAttempt` must be greater than 0, otherwise the `IO` should fail.
   // Note: `retry` is a no-operation when `maxAttempt` is equal to 1.
   def retry(maxAttempt: Int): IO[A] =
-    if(maxAttempt <= 0), IO.fail("maxAttempt must be greater than zero")
-    else if(maxAttempt == 1) this
-  else
-    attempt
-
+    if (maxAttempt <= 0) IO.fail(new IllegalArgumentException("maxAttempt must be greater than 0"))
+    else {
+      attempt.flatMap {
+        case Success(value) => IO(value)
+        case Failure(exception) =>
+          if (maxAttempt == 1) IO.fail(exception)
+          retry(maxAttempt - 1)
+      }
+    }
 
   //    IO {
   //      require(maxAttempt > 0, "maxAttempt must be greater than 0")
