@@ -73,10 +73,7 @@ trait IO[A] {
   // IO(throw new Exception("Boom!")).onError(logError).unsafeRun()
   // prints "Got an error: Boom!" and throws new Exception("Boom!")
   def onError[Other](cleanup: Throwable => IO[Other]): IO[A] =
-    attempt.flatMap {
-      case Success(value) => IO(value)
-      case Failure(e)     => cleanup(e).andThen(fail(e))
-    }
+    handleErrorWith(e => cleanup(e).andThen(fail(e)))
 
   // Retries this action until either:
   // * It succeeds.
