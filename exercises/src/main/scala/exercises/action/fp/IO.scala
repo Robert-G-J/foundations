@@ -102,15 +102,6 @@ trait IO[A] {
       }
     }
 
-  //    IO {
-  //      require(maxAttempt > 0, "maxAttempt must be greater than 0")
-  //        Try(unsafeRun()) match {
-  //          case Success(value) => value
-  //          case Failure(exception)     =>
-  //            if (maxAttempt == 1) throw exception
-  //            retry(maxAttempt - 1).unsafeRun()
-  //        }
-  //    }}
   // Checks if the current IO is a failure or a success.
   // For example,
   // val action: IO[User] = db.getUser(1234)
@@ -131,7 +122,10 @@ trait IO[A] {
   //   logError(e).andThen(emailClient.send(user.email, "Sorry something went wrong"))
   // )
   def handleErrorWith(callback: Throwable => IO[A]): IO[A] =
-    ???
+    attempt.flatMap {
+      case Success(value) => IO(value)
+      case Failure(e)     => callback(e)
+    }
 
   //////////////////////////////////////////////
   // Concurrent IO

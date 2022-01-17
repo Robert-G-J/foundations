@@ -69,14 +69,14 @@ class IOTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
   //////////////////////////////////////////////
 
   test("onError failure") {
-    var counter: Int = 0
-    val error = new Exception("Boom")
-    val cleanup: Throwable => IO[Unit] = e => IO{ counter += 99 }
-    val action: IO[Unit] = IO( throw error ).onError(cleanup)
+    var counter: Int                   = 0
+    val error                          = new Exception("Boom")
+    val cleanup: Throwable => IO[Unit] = e => IO(counter += 99)
+    val action: IO[Unit]               = IO(throw error).onError(cleanup)
     assert(counter == 0) // check is lazy
 
     val result = Try(action.unsafeRun())
-    assert(counter == 99) // check the cleanup ran
+    assert(counter == 99)            // check the cleanup ran
     assert(result == Failure(error)) //check it's in a failed state
   }
 
@@ -148,7 +148,7 @@ class IOTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     assert(result == Failure(exception))
   }
 
-  ignore("handleErrorWith success") {
+  test("handleErrorWith success") {
     var counter = 0
 
     val first  = IO(counter += 1) andThen IO("A")
@@ -161,7 +161,7 @@ class IOTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     assert(counter == 1) // only first is executed
   }
 
-  ignore("handleErrorWith failure") {
+  test("handleErrorWith failure") {
     var counter = 0
 
     val first  = IO(counter += 1) andThen IO.fail[Unit](new Exception("Boom"))
