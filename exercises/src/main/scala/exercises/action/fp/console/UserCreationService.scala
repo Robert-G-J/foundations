@@ -32,8 +32,7 @@ class UserCreationService(console: Console, clock: Clock) {
   // Then, we'll refactor `readName` with `andThen`.
   // Note: You can find tests in `exercises.action.fp.console.UserCreationServiceTest`
   val readName: IO[String] =
-  writeLine("What's your name?") andThen readLine
-
+    writeLine("What's your name?") andThen readLine
 
   // 2. Refactor `readDateOfBirth` so that the code combines the three internal `IO`
   // instead of executing each `IO` one after another using `unsafeRun`.
@@ -41,29 +40,29 @@ class UserCreationService(console: Console, clock: Clock) {
   // If it doesn't work investigate the methods `map` and `flatMap` on the `IO` trait.
   val readDateOfBirth: IO[LocalDate] =
     for {
-        _     <- writeLine("What's your date of birth? [dd-mm-yyyy]")
-        line <- readLine
-        dob <- parseDateOfBirth(line).onError(_ => writeLine(s"""Incorrect format, for example enter "18-03-2001" for 18th of March 2001"""))
+      _    <- writeLine("What's your date of birth? [dd-mm-yyyy]")
+      line <- readLine
+      dob <- parseDateOfBirth(line).onError(_ =>
+        writeLine(s"""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
+      )
     } yield dob
-
 
   // 3. Refactor `readSubscribeToMailingList` and `readUser` using the same techniques as `readDateOfBirth`.
   val readSubscribeToMailingList: IO[Boolean] =
     for {
-      _ <- writeLine("Would you like to subscribe to our mailing list? [Y/N]")
+      _    <- writeLine("Would you like to subscribe to our mailing list? [Y/N]")
       line <- readLine
-      subscribe <- parseLineToBoolean(line).onError(_ => writeLine(s"""Incorrect format, enter "Y" for Yes or "N" for "No""""))
+      subscribe <- parseLineToBoolean(line).onError(_ =>
+        writeLine(s"""Incorrect format, enter "Y" for Yes or "N" for "No"""")
+      )
     } yield subscribe
-
-
-
 
   val readUser: IO[User] =
     for {
-      name <- readName
-      dob <- readDateOfBirth.retry(3)
+      name       <- readName
+      dob        <- readDateOfBirth.retry(3)
       subscribed <- readSubscribeToMailingList.retry(3)
-      now <- clock.now
+      now        <- clock.now
       user = User(name, dob, subscribed, now)
       _ <- writeLine(s"User is $user")
     } yield user
@@ -116,9 +115,8 @@ class UserCreationService(console: Console, clock: Clock) {
 
   // 14. Implement the method `handleErrorWith` on `IO`.
 
-  // 15. Simplify the code of `onError` and `retry` using `handleErrorWith`
-
-  //////////////////////////////////////////////
+  // 15. Si
+  //////////////////////////////////////////////mplify the code of `onError` and `retry` using `handleErrorWith`
   // Bonus question (not covered by the videos)
   //////////////////////////////////////////////
 
