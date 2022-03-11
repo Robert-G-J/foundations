@@ -29,7 +29,8 @@ object SearchFlightService {
         for {
           flights1 <- client1.search(from, to, date)
           flights2 <- client2.search(from, to, date)
-        } yield SearchResult((flights1 ++ flights2).sorted(SearchResult.bestOrdering))
+          combine = (flights1 ++ flights2)
+        } yield SearchResult(combine)
     }
 
   // 2. Several clients can return data for the same flight. For example, if we combine data
