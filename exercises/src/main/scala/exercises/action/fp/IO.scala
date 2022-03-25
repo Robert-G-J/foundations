@@ -127,9 +127,9 @@ trait IO[A] {
   // then combine their results into a tuple
   def parZip[Other](other: IO[Other])(ec: ExecutionContext): IO[(A, Other)] =
     IO {
-      val future1: Future[A] = Future{this.unsafeRun()}(ec)
-      val future2: Future[Other] = Future{other.unsafeRun()}(ec)
-      val zipped = future1.zip(future2)
+      val future1: Future[A]     = Future(this.unsafeRun())(ec)
+      val future2: Future[Other] = Future(other.unsafeRun())(ec)
+      val zipped                 = future1.zip(future2)
       Await.result(zipped, Duration.Inf)
     }
 
@@ -147,6 +147,13 @@ object IO {
   def fail[A](error: Throwable): IO[A] =
     IO(throw error)
 
+  def sleep(duration: FiniteDuration): IO[Unit] =
+    IO(Thread.sleep(duration.toMillis))
+
+  //////////////////////////////////////////////
+  // Search Flight Exercises
+  //////////////////////////////////////////////
+
   // Constructor for IO. For example,
   // val greeting: IO[Unit] = IO { println("Hello") }
   // greeting.unsafeRun()
@@ -155,13 +162,6 @@ object IO {
     new IO[A] {
       def unsafeRun(): A = action
     }
-
-  //////////////////////////////////////////////
-  // Search Flight Exercises
-  //////////////////////////////////////////////
-
-  def sleep(duration: FiniteDuration): IO[Unit] =
-    IO(Thread.sleep(duration.toMillis))
 
   def debug(message: String): IO[Unit] =
     IO(Predef.println(s"[${Thread.currentThread().getName}] " + message))
@@ -224,6 +224,8 @@ object IO {
   // List(User(1111, ...), User(2222, ...), User(3333, ...))
   // Note: You may want to use `parZip` to implement `parSequence`.
   def parSequence[A](actions: List[IO[A]])(ec: ExecutionContext): IO[List[A]] =
-    ???
+      actions.foldLeft(IO(List.empty[A])) { (state, action) =>
+       state.parZip(action)(ec).map { case (result1, result2) => result2 :: result1 }
+      }.map(_.reverse)
 
 }

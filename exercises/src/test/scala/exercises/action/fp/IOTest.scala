@@ -238,7 +238,7 @@ class IOTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
   }
 
   // flaky
-  ignore("parSequence") {
+  test("parSequence") {
     var counter = 0
 
     val action = List(
@@ -253,7 +253,7 @@ class IOTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
   }
 
   // flaky
-  ignore("parTraverse") {
+  test("parTraverse") {
     var counter = 0
 
     def sleepAndIncrement(sleepMillis: Int): IO[Int] =
