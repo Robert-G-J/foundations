@@ -2,7 +2,9 @@ package exercises.action.fp
 
 import java.util.concurrent.CountDownLatch
 import exercises.action.fp.IO.fail
+import exercises.action.fp.concurrent.ConcurrentExamples.ec
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}
@@ -121,6 +123,16 @@ trait IO[A] {
   // Concurrent IO
   //////////////////////////////////////////////
 
+  // Runs both the current IO and `other` concurrently,
+  // then combine their results into a tuple
+  def parZip[Other](other: IO[Other])(ec: ExecutionContext): IO[(A, Other)] =
+    IO {
+      val future1: Future[A] = Future{this.unsafeRun()}(ec)
+      val future2: Future[Other] = Future{other.unsafeRun()}(ec)
+      val zipped = future1.zip(future2)
+      Await.result(zipped, Duration.Inf)
+    }
+
   // Runs both the current IO and `other` sequentially,
   // then combine their results into a tuple
   def zip[Other](other: IO[Other]): IO[(A, Other)] =
@@ -128,12 +140,6 @@ trait IO[A] {
       first  <- this
       second <- other
     } yield (first, second)
-
-  // Runs both the current IO and `other` concurrently,
-  // then combine their results into a tuple
-  def parZip[Other](other: IO[Other])(ec: ExecutionContext): IO[(A, Other)] =
-    ???
-
 }
 
 object IO {
@@ -187,12 +193,14 @@ object IO {
   // If no error occurs, it returns the users in the same order:
   // List(User(1111, ...), User(2222, ...), User(3333, ...))
   def sequence[A](actions: List[IO[A]]): IO[List[A]] =
-    actions.foldLeft(IO(List.empty[A]))((state, action) =>
-      for {
-        result1 <- state
-        result2 <- action
-      } yield result2 :: result1
-    ).map(_.reverse)
+    actions
+      .foldLeft(IO(List.empty[A]))((state, action) =>
+        for {
+          result1 <- state
+          result2 <- action
+        } yield result2 :: result1
+      )
+      .map(_.reverse)
 
   //////////////////////////////////////////////
   // Concurrent IO
