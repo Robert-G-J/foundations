@@ -26,7 +26,6 @@ class IOTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     assert(counter == 2)
   }
 
-  // replace `ignore` by `test` to enable this test
   test("andThen") {
     var counter = 0
 

@@ -195,10 +195,9 @@ object IO {
   def sequence[A](actions: List[IO[A]]): IO[List[A]] =
     actions
       .foldLeft(IO(List.empty[A]))((state, action) =>
-        for {
-          result1 <- state
-          result2 <- action
-        } yield result2 :: result1
+        state.zip(action).map { case (result1, result2) =>
+          result2 :: result1
+        }
       )
       .map(_.reverse)
 
@@ -224,8 +223,14 @@ object IO {
   // List(User(1111, ...), User(2222, ...), User(3333, ...))
   // Note: You may want to use `parZip` to implement `parSequence`.
   def parSequence[A](actions: List[IO[A]])(ec: ExecutionContext): IO[List[A]] =
-      actions.foldLeft(IO(List.empty[A])) { (state, action) =>
-       state.parZip(action)(ec).map { case (result1, result2) => result2 :: result1 }
-      }.map(_.reverse)
+    actions
+      .foldLeft(IO(List.empty[A])) { (state, action) =>
+        state
+          .parZip(action)(ec)
+          .map { case (result1, result2) =>
+            result2 :: result1
+          }
+      }
+      .map(_.reverse)
 
 }
