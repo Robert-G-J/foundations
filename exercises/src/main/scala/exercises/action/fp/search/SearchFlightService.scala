@@ -4,6 +4,7 @@ import java.time.LocalDate
 import exercises.action.fp.IO
 
 import scala.annotation.tailrec
+import scala.collection.IterableOnce.iterableOnceExtensionMethods
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -52,8 +53,27 @@ object SearchFlightService {
   // Note: We can assume `clients` to contain less than 100 elements.
   def fromClients(clients: List[SearchFlightClient]): SearchFlightService =
     new SearchFlightService {
-      def search(from: Airport, to: Airport, date: LocalDate): IO[SearchResult] =
-        ???
+      def search(from: Airport, to: Airport, date: LocalDate): IO[SearchResult] = {
+        def searchByClient(client: SearchFlightClient): IO[List[Flight]] =
+          client
+            .search(from, to, date)
+            .handleErrorWith(e => IO.debug(s"Client failed: $e") andThen IO(Nil))
+
+//        @tailrec
+//        def searchAllClients(clients: List[SearchFlightClient]): IO[List[Flight]] = {
+//          clients match {
+//            case Nil            => IO(SearchResult(Nil))
+//            case client :: otherClients =>
+//              for {
+//              flights1 <- searchByClient(client)
+//              flights2 <- searchAllClients(otherClients)
+//              } yield flights1 ++ flights2
+//          }
+//        }
+
+        clients.map(searchByClient(_)).sequence.map(_.flatten).map(SearchResult(_))
+
+      }
     }
 
   // 5. Refactor `fromClients` using `sequence` or `traverse` from the `IO` companion object.

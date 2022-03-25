@@ -1,10 +1,8 @@
 package exercises.action.fp
 
 import java.util.concurrent.CountDownLatch
-
 import exercises.action.fp.IO.fail
 
-import scala.annotation.tailrec
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}
@@ -139,6 +137,10 @@ trait IO[A] {
 }
 
 object IO {
+  // Construct an IO which throws `error` everytime it is called.
+  def fail[A](error: Throwable): IO[A] =
+    IO(throw error)
+
   // Constructor for IO. For example,
   // val greeting: IO[Unit] = IO { println("Hello") }
   // greeting.unsafeRun()
@@ -147,10 +149,6 @@ object IO {
     new IO[A] {
       def unsafeRun(): A = action
     }
-
-  // Construct an IO which throws `error` everytime it is called.
-  def fail[A](error: Throwable): IO[A] =
-    IO(throw error)
 
   //////////////////////////////////////////////
   // Search Flight Exercises
@@ -162,6 +160,23 @@ object IO {
   def debug(message: String): IO[Unit] =
     IO(Predef.println(s"[${Thread.currentThread().getName}] " + message))
 
+  // `traverse` is a shortcut for `map` followed by `sequence`, similar to how
+  // `flatMap`  is a shortcut for `map` followed by `flatten`
+  // For example,
+  // traverse(List(1111, 2222, 3333))(db.getUser) is equivalent to
+  // sequence(List(db.getUser(1111), db.getUser(2222), db.getUser(3333)))
+  def traverse[A, B](values: List[A])(action: A => IO[B]): IO[List[B]] =
+    sequence(values.map(action))
+
+//    actions match {
+//      case Nil         => IO(Nil)
+//      case head :: next =>
+//        for {
+//        result  <- head
+//        result2 <- sequence(next)
+//        } yield result :: result2
+//    }
+
   // Runs all the actions sequentially (one after the other)
   // and collect the results in the same order.
   // For example,
@@ -172,19 +187,24 @@ object IO {
   // If no error occurs, it returns the users in the same order:
   // List(User(1111, ...), User(2222, ...), User(3333, ...))
   def sequence[A](actions: List[IO[A]]): IO[List[A]] =
-    ???
-
-  // `traverse` is a shortcut for `map` followed by `sequence`, similar to how
-  // `flatMap`  is a shortcut for `map` followed by `flatten`
-  // For example,
-  // traverse(List(1111, 2222, 3333))(db.getUser) is equivalent to
-  // sequence(List(db.getUser(1111), db.getUser(2222), db.getUser(3333)))
-  def traverse[A, B](values: List[A])(action: A => IO[B]): IO[List[B]] =
-    sequence(values.map(action))
+    actions.foldLeft(IO(List.empty[A]))((state, action) =>
+      for {
+        result1 <- state
+        result2 <- action
+      } yield result2 :: result1
+    ).map(_.reverse)
 
   //////////////////////////////////////////////
   // Concurrent IO
   //////////////////////////////////////////////
+
+  // `parTraverse` is a shortcut for `map` followed by `parSequence`, similar to how
+  // `flatMap`     is a shortcut for `map` followed by `flatten`
+  // For example,
+  // parTraverse(List(1111, 2222, 3333))(db.getUser) is equivalent to
+  // parSequence(List(db.getUser(1111), db.getUser(2222), db.getUser(3333)))
+  def parTraverse[A, B](values: List[A])(action: A => IO[B])(ec: ExecutionContext): IO[List[B]] =
+    parSequence(values.map(action))(ec)
 
   // Runs all the actions concurrently and collect the results in the same order.
   // For example,
@@ -197,13 +217,5 @@ object IO {
   // Note: You may want to use `parZip` to implement `parSequence`.
   def parSequence[A](actions: List[IO[A]])(ec: ExecutionContext): IO[List[A]] =
     ???
-
-  // `parTraverse` is a shortcut for `map` followed by `parSequence`, similar to how
-  // `flatMap`     is a shortcut for `map` followed by `flatten`
-  // For example,
-  // parTraverse(List(1111, 2222, 3333))(db.getUser) is equivalent to
-  // parSequence(List(db.getUser(1111), db.getUser(2222), db.getUser(3333)))
-  def parTraverse[A, B](values: List[A])(action: A => IO[B])(ec: ExecutionContext): IO[List[B]] =
-    parSequence(values.map(action))(ec)
 
 }
