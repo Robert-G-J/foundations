@@ -59,8 +59,8 @@ object SearchFlightService {
             .search(from, to, date)
             .handleErrorWith(e => IO.debug(s"Client failed: $e") andThen IO(Nil))
 
-        clients.map(searchByClient(_))
-          .sequence
+        clients
+          .traverse(searchByClient(_))
           .map(_.flatten)
           .map(SearchResult(_))
 
