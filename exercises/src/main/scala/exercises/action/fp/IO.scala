@@ -13,7 +13,10 @@ trait IO[A] {
 
   // Executes the action.
   // This is the ONLY abstract method of the `IO` trait.
-  def unsafeRun(): A
+  def unsafeRunAsync(callback: Try[A] => Unit): Unit
+
+  // Remove as abstract method from trait
+  def unsafeRun(): A = ???
 
   // Runs the current IO (`this`), discards its result and runs the second IO (`other`).
   // For example,
