@@ -19,9 +19,13 @@ trait IO[A] {
   def unsafeRun(): A = {
     // set a var to save the result of the callback
     var result: Option[Try[A]] = None
-    unsafeRunAsync(tryA => result = Some(tryA))
+    val latch = new CountDownLatch(1)
+    unsafeRunAsync{
+      tryA => result = Some(tryA)
+      latch.countDown() //release the latch
+    }
 
-    while (result.isEmpty) Thread.sleep(10)
+    latch.await() // blocks
 
     result.get.get
   }
