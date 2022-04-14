@@ -20,6 +20,9 @@ trait IO[A] {
     // set a var to save the result of the callback
     var result: Option[Try[A]] = None
     unsafeRunAsync(tryA => result = Some(tryA))
+
+    while (result.isEmpty) Thread.sleep(10)
+
     result.get.get
   }
 
