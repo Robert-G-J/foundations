@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 // exercises/runMain exercises.action.fp.ConcurrentExamples
 object ConcurrentExamples extends App {
 
-  val ec = ThreadPoolUtil.fixedSizeExecutionContext(8, "pool")
+  val ec = ThreadPoolUtil.fixedSizeExecutionContext(4, "pool")
 
   val streamA = stream("A", 2, 1000.millis)
   val streamB = stream("B", 5, 500.millis)
