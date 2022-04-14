@@ -17,11 +17,9 @@ trait IO[A] {
 
   // Remove as abstract method from trait; implement in terms of async
   def unsafeRun(): A = {
+    // set a var to save the result of the callback
     var result: Option[Try[A]] = None
-    unsafeRunAsync {
-      case Failure(exception) => result = Some(Failure(exception))
-      case Success(value)     => result = Some(Success(value))
-    }
+    unsafeRunAsync(tryA => result = Some(tryA))
     result.get.get
   }
 
