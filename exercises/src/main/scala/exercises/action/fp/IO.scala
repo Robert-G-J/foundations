@@ -76,6 +76,7 @@ trait IO[A] {
        case Failure(exception) => callback(Failure(exception))
        case Success(value) => next(value).unsafeRunAsync(callback)
      }
+    }
 
 
   // Runs the current action, if it fails it executes `cleanup` and rethrows the original error.
