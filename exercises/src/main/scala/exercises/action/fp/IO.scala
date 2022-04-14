@@ -16,7 +16,14 @@ trait IO[A] {
   def unsafeRunAsync(callback: Try[A] => Unit): Unit
 
   // Remove as abstract method from trait; implement in terms of async
-  def unsafeRun(): A = ???
+  def unsafeRun(): A = {
+    var result: Option[Try[A]] = None
+    unsafeRunAsync {
+      case Failure(exception) => result = Some(Failure(exception))
+      case Success(value)     => result = Some(Success(value))
+    }
+    result.get.get
+  }
 
   // Runs the current IO (`this`), discards its result and runs the second IO (`other`).
   // For example,
