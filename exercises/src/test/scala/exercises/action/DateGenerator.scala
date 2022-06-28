@@ -1,7 +1,9 @@
 package exercises.action
 
+import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate}
 
+import exercises.action.imperative.UserCreationExercises.validDateOfBirthFormatter
 import org.scalacheck.{Arbitrary, Gen}
 
 object DateGenerator {
@@ -21,4 +23,7 @@ object DateGenerator {
 
   implicit val instantArb: Arbitrary[Instant] =
     Arbitrary(instantGen)
+
+  val stringFromDateGen: (DateTimeFormatter) => Gen[String] = (formatter: DateTimeFormatter) =>
+    dateGen.map(formatter.format)
 }

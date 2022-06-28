@@ -1,5 +1,8 @@
 package exercises.action.fp.search
 
+import java.time.{Duration, Instant, LocalDate}
+
+import exercises.action.fp.search.Airport.{londonGatwick, parisOrly}
 import exercises.action.fp.search.SearchFlightGenerator._
 import org.scalacheck.Gen
 import org.scalatest.funsuite.AnyFunSuite
@@ -46,4 +49,30 @@ class SearchResultTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     }
   }
 
+  test("apply - sorts") {
+    val now = Instant.now()
+
+    val flight1 = Flight("1", "BA", parisOrly, londonGatwick, now, Duration.ofMinutes(100), 0, 89.5, "")
+    val flight2 = Flight("2", "BA", parisOrly, londonGatwick, now, Duration.ofMinutes(100), 0, 500.0, "")
+    val flight3 = Flight("3", "BA", parisOrly, londonGatwick, now, Duration.ofMinutes(140), 1, 234.0, "")
+    val flight4 = Flight("4", "LH", parisOrly, londonGatwick, now, Duration.ofMinutes(210), 2, 55.5, "")
+
+    val result = SearchResult(List(flight2, flight4, flight1, flight3))
+
+    assert(result == SearchResult(List(flight1, flight2, flight3, flight4)))
+  }
+
+  test("apply - dedupes") {
+    val now = Instant.now()
+
+    val flight1a = Flight("1", "BA", parisOrly, londonGatwick, now, Duration.ofMinutes(100), 0, 89.5, "")
+    val flight1b = Flight("1", "BA", parisOrly, londonGatwick, now, Duration.ofMinutes(100), 0, 500.0, "")
+    val flight2  = Flight("2", "BA", parisOrly, londonGatwick, now, Duration.ofMinutes(100), 0, 123.0, "")
+    val flight3  = Flight("3", "BA", parisOrly, londonGatwick, now, Duration.ofMinutes(140), 1, 234.0, "")
+    val flight4  = Flight("4", "LH", parisOrly, londonGatwick, now, Duration.ofMinutes(210), 2, 55.5, "")
+
+    val result = SearchResult(List(flight2, flight1a, flight4, flight1b, flight3))
+
+    assert(result == SearchResult(List(flight1a, flight2, flight3, flight4)))
+  }
 }

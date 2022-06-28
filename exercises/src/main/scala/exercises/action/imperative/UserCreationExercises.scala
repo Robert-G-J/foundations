@@ -5,6 +5,7 @@ import java.time.{Instant, LocalDate}
 
 import scala.annotation.tailrec
 import scala.io.StdIn
+import scala.io.StdIn.readBoolean
 import scala.util.{Failure, Success, Try}
 
 // Run the App using the green arrow next to object (if using IntelliJ)
@@ -13,22 +14,20 @@ import scala.util.{Failure, Success, Try}
 object UserCreationApp extends App {
   import UserCreationExercises._
 
-  readUser()
+   readUser(Console.system, Clock.system, maxAttempts = 3)
 }
 
 object UserCreationExercises {
-  val dateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+  // use the 'uuuu' to avoid bad handling of negative years in conversion. It's a better default
+  val validDateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-uuuu")
 
-  case class User(name: String, dateOfBirth: LocalDate, createdAt: Instant)
-
-  def readUser(): User = {
-    println("What's your name?")
-    val name = StdIn.readLine()
-    println("What's your date of birth? [dd-mm-yyyy]")
-    val dateOfBirth = LocalDate.parse(StdIn.readLine(), dateOfBirthFormatter)
-    val now         = Instant.now()
-    val user        = User(name, dateOfBirth, now)
-    println(s"User is $user")
+  def readUser(console: Console, clock: Clock, maxAttempts: Int): User = {
+    val name = readName(console)
+    val dateOfBirth: LocalDate = readDateOfBirthRetry(console, maxAttempts)
+    val wantsToSubscribe: Boolean = readSubscribeToMailingListRetry(console, maxAttempts)
+    val now = clock.now()
+    val user = User(name, dateOfBirth, wantsToSubscribe, now)
+    console.writeLine(s"User is $user")
     user
   }
 
@@ -44,8 +43,21 @@ object UserCreationExercises {
   // Throws an exception.
   // Note: You can read a user input using `StdIn.readLine()`.
   // Note: You can use `throw new IllegalArgumentException("...")` to throw an exception.
-  def readSubscribeToMailingList(): Boolean =
-    ???
+  def readSubscribeToMailingList(): Boolean = {
+    println("Would you like to subscribe to our mailing list? [Y/N]")
+    val wantsToSubscribe: String = StdIn.readLine()
+    parseYesNo(wantsToSubscribe)
+  }
+
+  val formatYesNo: Boolean => String = (yesNo: Boolean) => if(yesNo == true) "Y" else "N"
+
+  def parseYesNo(wantsToSubscribe: String) = {
+    wantsToSubscribe match {
+      case "Y" => true
+      case "N" => false
+      case other => throw new IllegalArgumentException(s"""Must enter a "Y" or "N" but received $other""")
+    }
+  }
 
   // 2. How can we test `readSubscribeToMailingList`?
   // We cannot use example-based tests or property-based tests
@@ -56,8 +68,11 @@ object UserCreationExercises {
   // Then, try to test this version using property-based testing.
   // Note: Check the `Console` companion object.
   // Bonus: Try to write a property-based test for `readSubscribeToMailingList`
-  def readSubscribeToMailingList(console: Console): Boolean =
-    ???
+  def readSubscribeToMailingList(console: Console): Boolean = {
+    console.writeLine("Would you like to subscribe to our mailing list? [Y/N]")
+    val wantsToSubscribe = console.readLine()
+    parseYesNo(wantsToSubscribe)
+  }
 
   // 3. Implement `readDateOfBirth` which asks the date of birth of the user.
   // User must answer using the format `dd-mm-yyyy`, e.g. "18-03-2001" for 18th of March 2001.
@@ -71,8 +86,12 @@ object UserCreationExercises {
   // Throws an exception.
   // Note: You can use `LocalDate.parse` to parse a String into a LocalDate.
   // Note: You can use the formatter `dateOfBirthFormatter` (in scope).
-  def readDateOfBirth(console: Console): LocalDate =
-    ???
+  def readDateOfBirth(console: Console): LocalDate = {
+    console.writeLine("What's your date of birth? [dd-mm-yyyy]")
+    val dob: String = console.readLine()
+    val parsedDob   = LocalDate.parse(dob, validDateOfBirthFormatter)
+    parsedDob
+  }
 
   // 4. Implement a testable version of `readUser`.
   // For example,
@@ -92,8 +111,13 @@ object UserCreationExercises {
   // Note: You will need to add `subscribedToMailingList: Boolean` field to `User`.
   // Note: How can you mock the current time? Check the `Clock` class in this package
   //       and update the signature of `readUser`.
-  def readUser(console: Console): User =
-    ???
+  def readName(console: Console): String = {
+    console.writeLine("What's your name?")
+    val name = console.readLine()
+    name
+  }
+
+  case class User(name: String, dateOfBirth: LocalDate, subscribedToMailingList: Boolean, createdAt: Instant)
 
   //////////////////////////////////////////////
   // PART 2: Error handling
@@ -116,8 +140,14 @@ object UserCreationExercises {
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
   // Note: You can implement the retry logic using recursion or a for/while loop. I suggest
   //       trying both possibilities.
-  def readSubscribeToMailingListRetry(console: Console, maxAttempt: Int): Boolean =
-    ???
+  def readSubscribeToMailingListRetry(console: Console, maxAttempt: Int): Boolean = {
+    val cleanup : (Throwable => Any) = (ex: Throwable) =>
+      console.writeLine(s"""Incorrect format, enter "Y" for Yes or "N" for "No"""")
+    val action = () => readSubscribeToMailingList(console)
+    val retryAction = () => onError(action, cleanup )
+
+    retry(maxAttempt)(retryAction)
+  }
 
   // 6. Implement `readDateOfBirthRetry` which behaves like
   // `readDateOfBirth` but retries when the user enters an invalid input.
@@ -134,10 +164,15 @@ object UserCreationExercises {
   // [Prompt] Incorrect format, for example enter "18-03-2001" for 18th of March 2001
   // Throws an exception because the user only had 1 attempt and they entered an invalid input.
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
-  def readDateOfBirthRetry(console: Console, maxAttempt: Int): LocalDate =
-    ???
+//  @tailrec
+  def readDateOfBirthRetry(console: Console, maxAttempt: Int): LocalDate = {
+    val readAction = () => readDateOfBirth(console)
+    val cleanup = (ex: Throwable) => console.writeLine(s"""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
+      retry(maxAttempt)(() => onError(readAction, cleanup))
+  }
 
-  // 7. Update `readUser` so that it allows the user to make up to 2 mistakes (3 attempts)
+
+   // 7. Update `readUser` so that it allows the user to make up to 2 mistakes (3 attempts)
   // when entering their date of birth and mailing list subscription flag.
 
   //////////////////////////////////////////////
