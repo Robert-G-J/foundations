@@ -10,9 +10,9 @@ class OptionExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyCheck
   test("getAccountId example") {
     val accountId = AccountId(124)
 
-    assert(getAccountId(Reader(accountId, true)) == Some(accountId))
-    assert(getAccountId(Editor(accountId, "Comic Sans")) == Some(accountId))
-    assert(getAccountId(Admin) == None)
+    assert(Reader(accountId, true).getAccountId == Some(accountId))
+    assert(Editor(accountId, "Comic Sans").getAccountId == Some(accountId))
+    assert(Admin.getAccountId == None)
   }
 
   ignore("getUserEmail example") {

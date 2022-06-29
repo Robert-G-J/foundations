@@ -4,7 +4,15 @@ import exercises.errorhandling.option.OptionExercises.Role._
 
 object OptionExercises {
 
-  sealed trait Role
+  sealed trait Role {
+    def getAccountId: Option[AccountId] = this match {
+      case x: Reader => Some(x.accountId)
+      case x: Editor => Some(x.accountId)
+      case Role.Admin => None
+    }
+
+  }
+
   object Role {
     // A Reader has a read-only access to a single account
     case class Reader(accountId: AccountId, premiumUser: Boolean) extends Role
@@ -12,12 +20,6 @@ object OptionExercises {
     case class Editor(accountId: AccountId, favoriteFont: String) extends Role
     // An Admin has unlimited access on all accounts
     case object Admin extends Role
-
-//    def getAccountId: Option[AccountId] = ??? // this match {
-//      case x: Reader => Some(x.accountId)
-//      case x: Editor => Some(x.accountId)
-//      case Admin => None
-//    }
   }
   case class AccountId(value: Long)
 
@@ -30,13 +32,7 @@ object OptionExercises {
   // Note: You can pattern match on `Role` using `role match { case Reader(...) => ... }`
   // Note: Once you have implemented `getAccountId`, try to move it
   //       inside the `Role` class.
-  def getAccountId(role: Role): Option[AccountId] = {
-    role match {
-      case x: Reader => Some(x.accountId)
-      case x: Editor => Some(x.accountId)
-      case Role.Admin => None
-    }
-  }
+
 
   case class User(id: UserId, name: String, role: Role, email: Option[Email])
   case class UserId(value: Long)
