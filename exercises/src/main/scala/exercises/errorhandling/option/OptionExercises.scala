@@ -12,6 +12,8 @@ object OptionExercises {
     case class Editor(accountId: AccountId, favoriteFont: String) extends Role
     // An Admin has unlimited access on all accounts
     case object Admin extends Role
+
+    def getAccountId(role: Role): Option[AccountId] = ???
   }
   case class AccountId(value: Long)
 
@@ -24,8 +26,13 @@ object OptionExercises {
   // Note: You can pattern match on `Role` using `role match { case Reader(...) => ... }`
   // Note: Once you have implemented `getAccountId`, try to move it
   //       inside the `Role` class.
-  def getAccountId(role: Role): Option[AccountId] =
-    ???
+  def getAccountId(role: Role): Option[AccountId] = {
+    role match {
+      case Reader(accountId, premiumUser) => Some(accountId)
+      case Editor(accountId, favoriteFont) => Some(accountId)
+      case Role.Admin => None
+    }
+  }
 
   case class User(id: UserId, name: String, role: Role, email: Option[Email])
   case class UserId(value: Long)
