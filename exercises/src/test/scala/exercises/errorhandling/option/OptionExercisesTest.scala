@@ -27,7 +27,7 @@ class OptionExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyCheck
     assert(getUserEmail(UserId(444), users) == None) // no email
   }
 
-  ignore("getAccountIds example") {
+  test("getAccountIds example") {
     val users = List(
       User(UserId(111), "Eda", Editor(AccountId(555), "Comic Sans"), Some(Email("e@y.com"))),
       User(UserId(222), "Bob", Reader(AccountId(555), true), None),

@@ -68,7 +68,7 @@ object OptionExercises {
   // returns List(555, 741)
   // Note: In case two or more users have the same account id, `getAccountIds` only returns one.
   def getAccountIds(users: List[User]): List[AccountId] =
-    ???
+    users.flatMap(_.role.getAccountId).distinct
 
   // 4. Implement `checkAllEmails` which checks if all users have an email and returns them.
   // If one or more users don't have an email `checkAllEmails` returns false.
