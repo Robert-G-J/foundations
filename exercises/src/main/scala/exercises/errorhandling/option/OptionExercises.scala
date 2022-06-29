@@ -2,6 +2,8 @@ package exercises.errorhandling.option
 
 import exercises.errorhandling.option.OptionExercises.Role._
 
+import scala.annotation.tailrec
+
 object OptionExercises {
 
   sealed trait Role {
@@ -86,14 +88,18 @@ object OptionExercises {
   // returns None
   // Note: You may want to use `sequence` or `traverse` defined below.
   def checkAllEmails(users: List[User]): Option[List[Email]] =
-    ???
+    users.traverse(_.email)
 
   // 5. If all options are defined (`Some`), `sequence` extracts all the values in a List.
   // If one or more options are None, `sequence` returns None.
   // sequence(List(Some(1), Some(2), Some(3))) == Some(List(1, 2, 3))
   // sequence(List(Some(1), None   , Some(3))) == None
   def sequence[A](options: List[Option[A]]): Option[List[A]] =
-    ???
+    options.foldLeft(Some(Nil): Option[List[A]]){ (state, option) =>
+        option.zip(state).map {
+          case (value, tail) => value +: tail
+        }
+    }.map(_.reverse)
 
   // Alias for `map` followed by `sequence`
   def traverse[A, B](values: List[A])(transform: A => Option[B]): Option[List[B]] =

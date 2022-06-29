@@ -37,7 +37,7 @@ class OptionExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyCheck
     assert(getAccountIds(users) == List(AccountId(555), AccountId(741)))
   }
 
-  ignore("checkAllEmails example success") {
+  test("checkAllEmails example success") {
     assert(
       checkAllEmails(
         List(
@@ -48,7 +48,7 @@ class OptionExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyCheck
     )
   }
 
-  ignore("checkAllEmails example failure") {
+  test("checkAllEmails example failure") {
     assert(
       checkAllEmails(
         List(
@@ -61,7 +61,7 @@ class OptionExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyCheck
     )
   }
 
-  ignore("sequence example") {
+  test("sequence example") {
     assert(sequence(List(Some(1), Some(2), Some(3))) == Some(List(1, 2, 3)))
     assert(sequence(List(Some(1), None, Some(3))) == None)
   }
