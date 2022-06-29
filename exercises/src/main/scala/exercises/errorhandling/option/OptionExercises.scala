@@ -53,7 +53,11 @@ object OptionExercises {
   // getUserEmail(444, users) == None // no email
   // Note: You can use the method `get` on a `Map` to lookup a value by key
   def getUserEmail(userId: UserId, users: Map[UserId, User]): Option[Email] =
-    ???
+    users.get(userId) match {
+      case None       => None
+      case Some(user) => user.email
+    }
+
 
   // 3. Implement `getAccountIds` which returns all the account ids associated
   // with the users. If a user has no account id (e.g. `Admin`), ignore them.
