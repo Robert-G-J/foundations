@@ -7,7 +7,7 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 class OptionExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
-  ignore("getAccountId example") {
+  test("getAccountId example") {
     val accountId = AccountId(124)
 
     assert(getAccountId(Reader(accountId, true)) == Some(accountId))

@@ -13,7 +13,11 @@ object OptionExercises {
     // An Admin has unlimited access on all accounts
     case object Admin extends Role
 
-    def getAccountId(role: Role): Option[AccountId] = ???
+//    def getAccountId: Option[AccountId] = ??? // this match {
+//      case x: Reader => Some(x.accountId)
+//      case x: Editor => Some(x.accountId)
+//      case Admin => None
+//    }
   }
   case class AccountId(value: Long)
 
@@ -28,8 +32,8 @@ object OptionExercises {
   //       inside the `Role` class.
   def getAccountId(role: Role): Option[AccountId] = {
     role match {
-      case Reader(accountId, premiumUser) => Some(accountId)
-      case Editor(accountId, favoriteFont) => Some(accountId)
+      case x: Reader => Some(x.accountId)
+      case x: Editor => Some(x.accountId)
       case Role.Admin => None
     }
   }
