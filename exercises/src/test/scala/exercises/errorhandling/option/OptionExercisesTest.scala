@@ -69,8 +69,8 @@ class OptionExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyCheck
   test("asEditor example") {
     val accountId = AccountId(124)
 
-    assert(asEditor(Reader(accountId, true)) == None)
-    assert(asEditor(Editor(accountId, "Comic Sans")) == Some(Editor(accountId, "Comic Sans")))
-    assert(asEditor(Admin) == None)
+    assert(Reader(accountId, true).asEditor == None)
+    assert(Editor(accountId, "Comic Sans").asEditor == Some(Editor(accountId, "Comic Sans")))
+    assert(Admin.asEditor == None)
   }
 }

@@ -13,6 +13,11 @@ object OptionExercises {
       case Role.Admin => None
     }
 
+    def asEditor: Option[Editor] =
+      this match {
+        case x: Editor         => Some(x)
+        case _: Reader | Admin => None
+      }
   }
 
   object Role {
@@ -116,9 +121,4 @@ object OptionExercises {
   // asEditor(Admin) == None
   // Note: Once you have implemented `getAccountId`, try to move it
   //       inside the `Role` class.
-  def asEditor(role: Role): Option[Editor] =
-    role match {
-      case x: Editor => Some(x)
-      case _ => None
-    }
 }
