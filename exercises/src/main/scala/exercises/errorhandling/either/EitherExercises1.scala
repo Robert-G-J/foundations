@@ -19,7 +19,11 @@ object EitherExercises1 {
   // getUserEmail(111, users) == Left("User 111 is missing")
   // getUserEmail(444, users) == Left("User 444 has no email address")
   def getUserEmail(userId: UserId, users: Map[UserId, User]): Either[String, Email] =
-    ???
+    users
+      .get(userId)
+      .toRight(s"User ${userId.value} is missing")
+      .flatMap (_.email.toRight(s"User ${userId.value} has no email address") )
+
 
   // 2. Refactor `getUserEmail` so that it uses an `UserEmailError` instead of `String`
   // in the error channel.
