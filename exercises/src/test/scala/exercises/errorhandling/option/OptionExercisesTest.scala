@@ -66,7 +66,7 @@ class OptionExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyCheck
     assert(sequence(List(Some(1), None, Some(3))) == None)
   }
 
-  ignore("asEditor example") {
+  test("asEditor example") {
     val accountId = AccountId(124)
 
     assert(asEditor(Reader(accountId, true)) == None)

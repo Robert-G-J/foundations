@@ -117,5 +117,8 @@ object OptionExercises {
   // Note: Once you have implemented `getAccountId`, try to move it
   //       inside the `Role` class.
   def asEditor(role: Role): Option[Editor] =
-    ???
+    role match {
+      case x: Editor => Some(x)
+      case _ => None
+    }
 }
