@@ -8,7 +8,7 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 class EitherExercises2Test extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
-  ignore("validateCountry example") {
+  test("validateCountry example") {
     assert(validateCountry("FRA") == Right(France))
     assert(validateCountry("UK") == Left(InvalidFormat("UK")))
     assert(validateCountry("ARG") == Left(NotSupported("ARG")))

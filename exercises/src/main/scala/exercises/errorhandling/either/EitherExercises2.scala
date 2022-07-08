@@ -29,7 +29,12 @@ object EitherExercises2 {
   // validateCountry("UK")  == Left(InvalidFormat("UK"))
   // validateCountry("ARG") == Left(NotSupported("ARG")), ARG represents Argentina
   def validateCountry(countryCode: String): Either[CountryError, Country] =
-    ???
+    // validate format: caps, 3 letters and characters (not numbers)
+    if (countryCode.length == 3 && countryCode.forall(char => char.isLetter && char.isUpper)) {
+      Country.all
+        .find(_.code == countryCode)
+        .toRight(NotSupported(countryCode))
+    } else Left(InvalidFormat(countryCode))
 
   // 2. Implement `checkUsernameSize` which checks if a username is
   // at least 5 characters long. For example,
