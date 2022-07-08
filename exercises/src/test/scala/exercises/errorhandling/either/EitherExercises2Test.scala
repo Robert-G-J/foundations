@@ -19,7 +19,7 @@ class EitherExercises2Test extends AnyFunSuite with ScalaCheckDrivenPropertyChec
     assert(checkUsernameSize("bo") == Left(TooSmall(2)))
   }
 
-  ignore("checkUsernameCharacters example") {
+  test("checkUsernameCharacters example") {
     assert(checkUsernameCharacters("_abc-123_") == Right(()))
     assert(checkUsernameCharacters("foo!~23}AD") == Left(InvalidCharacters(List('!', '~', '}'))))
   }

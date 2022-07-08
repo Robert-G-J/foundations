@@ -48,8 +48,11 @@ object EitherExercises2 {
   // according to the function `isValidUsernameCharacter`. For example,
   // checkUsernameCharacters("_abc-123_")  == Right(())
   // checkUsernameCharacters("foo!~23}AD") == Left(InvalidCharacters(List('!','~','}')))
-  def checkUsernameCharacters(username: String): Either[InvalidCharacters, Unit] =
-    ???
+  def checkUsernameCharacters(username: String): Either[ValidationError, Unit] =
+    username.toList.filterNot(isValidUsernameCharacter) match {
+      case Nil               => Right(())
+      case invalidCharacters => Left(InvalidCharacters(invalidCharacters))
+    }
 
   def isValidUsernameCharacter(c: Char): Boolean =
     c.isLetter || c.isDigit || c == '_' || c == '-'
@@ -71,16 +74,12 @@ object EitherExercises2 {
   def validateUser(usernameStr: String, countryStr: String) = // Either[???, User]
     ???
 
-  sealed trait CountryError
-  object CountryError {
-    case class InvalidFormat(country: String) extends CountryError
-    case class NotSupported(country: String)  extends CountryError
-  }
-
-  sealed trait UsernameError
-  object UsernameError {
-    case class TooSmall(inputLength: Int)          extends UsernameError
-    case class InvalidCharacters(char: List[Char]) extends UsernameError
+  sealed trait ValidationError
+  object ValidationError {
+    case class InvalidFormat(country: String) extends ValidationError
+    case class NotSupported(country: String) extends ValidationError
+    case class TooSmall(inputLength: Int) extends ValidationError
+    case class InvalidCharacters(char: List[Char]) extends ValidationError
   }
 
 }
