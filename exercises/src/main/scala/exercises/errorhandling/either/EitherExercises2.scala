@@ -1,7 +1,7 @@
 package exercises.errorhandling.either
 
-import exercises.errorhandling.either.EitherExercises2.CountryError._
-import exercises.errorhandling.either.EitherExercises2.UsernameError._
+import exercises.errorhandling.either.EitherExercises2.Country.UnitedKingdom
+import exercises.errorhandling.either.EitherExercises2.ValidationError._
 
 object EitherExercises2 {
 
@@ -28,7 +28,7 @@ object EitherExercises2 {
   // validateCountry("FRA") == Right(France)
   // validateCountry("UK")  == Left(InvalidFormat("UK"))
   // validateCountry("ARG") == Left(NotSupported("ARG")), ARG represents Argentina
-  def validateCountry(countryCode: String): Either[CountryError, Country] =
+  def validateCountry(countryCode: String): Either[ValidationError, Country] =
     // validate format: caps, 3 letters and characters (not numbers)
     if (countryCode.length == 3 && countryCode.forall(char => char.isLetter && char.isUpper)) {
       Country.all
@@ -42,7 +42,7 @@ object EitherExercises2 {
   // checkUsernameSize("bob_2")    == Right(())
   // checkUsernameSize("bo")       == Left(TooSmall(2))
   def checkUsernameSize(username: String): Either[TooSmall, Unit] =
-    ???
+    Either.cond(username.length >= 5, right = (), left = TooSmall(username.length))
 
   // 3. Implement `checkUsernameCharacters` which checks if all characters are valid
   // according to the function `isValidUsernameCharacter`. For example,

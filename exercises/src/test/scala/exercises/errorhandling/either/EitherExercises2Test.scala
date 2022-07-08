@@ -1,7 +1,6 @@
 package exercises.errorhandling.either
 import exercises.errorhandling.either.EitherExercises2.Country._
-import exercises.errorhandling.either.EitherExercises2.CountryError._
-import exercises.errorhandling.either.EitherExercises2.UsernameError._
+import exercises.errorhandling.either.EitherExercises2.ValidationError._
 import exercises.errorhandling.either.EitherExercises2._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
@@ -14,7 +13,7 @@ class EitherExercises2Test extends AnyFunSuite with ScalaCheckDrivenPropertyChec
     assert(validateCountry("ARG") == Left(NotSupported("ARG")))
   }
 
-  ignore("checkUsernameSize example") {
+  test("checkUsernameSize example") {
     assert(checkUsernameSize("bob_2167") == Right(()))
     assert(checkUsernameSize("bob_2") == Right(()))
     assert(checkUsernameSize("bo") == Left(TooSmall(2)))
