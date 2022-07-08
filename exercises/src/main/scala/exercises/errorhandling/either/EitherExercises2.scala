@@ -63,8 +63,11 @@ object EitherExercises2 {
   // validateUsername("bob_2167")   == Right(Username("bob_2167"))
   // validateUsername("bo")         == Left(TooSmall(2))
   // validateUsername("foo!~23}AD") == Left(InvalidCharacters(List('!','~','}')))
-  def validateUsername(username: String): Either[UsernameError, Username] =
-    ???
+  def validateUsername(username: String): Either[ValidationError, Username] =
+    for {
+      _ <- checkUsernameSize(username)
+      _ <- checkUsernameCharacters(username)
+    } yield Username(username)
 
   // 5. Implement `validateUser` which verifies that both the username and the country
   // of residence are correct according to `validateUsername` and `validateCountry`.
