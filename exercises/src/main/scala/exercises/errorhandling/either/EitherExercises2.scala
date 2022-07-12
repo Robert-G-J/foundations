@@ -74,11 +74,11 @@ object EitherExercises2 {
   // What should be the return type of `validateUser`?
   // validateUser("bob_2167", "FRA") --> Success User(Username("bob_2167"), France)
   // validateUser("bo", "FRA")       --> Failure
-  def validateUser(usernameStr: String, countryStr: String) = // Either[???, User]
+  def validateUser(usernameStr: String, countryStr: String): Either[ValidationError, User] =
     for {
-      name    <- validateUsername(usernameStr)
+      username    <- validateUsername(usernameStr)
       country <- validateCountry(countryStr)
-    } yield User(name, country)
+    } yield User(username, country)
 
   sealed trait ValidationError
   object ValidationError {
