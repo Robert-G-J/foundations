@@ -26,7 +26,12 @@ sealed trait Validation[+E, +A] {
   // 1.valid.zip("error2".invalid)          == Invalid(NEL("error2"))
   // 1.valid.zip("Hello".valid)             == Valid((1, "Hello"))
   def zip[E2 >: E, Other](other: Validation[E2, Other]): Validation[E2, (A, Other)] =
-    ???
+    (this, other) match {
+      case (Valid(a), Valid(other)) => Valid((a, other))
+      case (Valid(_), Invalid(otherErrors)) => Invalid(otherErrors)
+      case (Invalid(thisErrors), Valid(_)) => Invalid(thisErrors)
+      case (Invalid(thisErrors), Invalid(otherErrors)) => Invalid(thisErrors ++ otherErrors)
+    }
 
   // alias for `zip` followed by `map`.
   def zipWith[E2 >: E, Other, Next](other: Validation[E2, Other])(
