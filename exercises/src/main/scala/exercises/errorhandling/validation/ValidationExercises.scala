@@ -70,7 +70,7 @@ object ValidationExercises {
   // 5. Implement `validateUser` so that it reports all errors.
   def validateUser(usernameStr: String, countryStr: String): Validation[FormError, User] =
     (validateUsername(usernameStr), validateCountry(countryStr))
-      .zipWith((username, country) => User(username, country))
+      .zipWith(User.apply)
 
   // 6. When validateUser` produces a `TooSmall(2)`, how do we know that it is about the username?
   // Update `validateUser` so that it groups all the errors by field (see `FieldError` below).
