@@ -76,12 +76,8 @@ object ValidationExercises {
     )
     .zipWith(User.apply)
 
-  def field[A](id: String, validation: Validation[FormError, A]): Validation[FieldError, A] = {
-    validation match {
-      case Valid(value)   => value.valid
-      case Invalid(formErrors) => FieldError(id, formErrors).invalid
-    }
-  }
+  def field[A](id: String, validation: Validation[FormError, A]): Validation[FieldError, A] =
+    validation.mapErrorAll(formErrors =>  NEL(FieldError(id, formErrors)))
 
   // 6. When validateUser` produces a `TooSmall(2)`, how do we know that it is about the username?
   // Update `validateUser` so that it groups all the errors by field (see `FieldError` below).
