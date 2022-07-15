@@ -34,16 +34,25 @@ object ValidationExercises {
   // validateCountry("ARG") == Invalid(NEL(NotSupported("ARG")))
   // Note: You can find several helpers methods in the companion object of Validation,
   //       as well as many extension methods in `package.scala`.
-  def validateCountry(countryCode: String): Validation[FormError, Country] =
-    ???
+  def validateCountry(countryCode: String): Validation[FormError, Country] ={
+    if (countryCode.length == 3 && countryCode.forall(char => char.isLetter && char.isUpper)) {
+      Country.all
+        .find(_.code == countryCode)
+        .toValid(NotSupported(countryCode))
+    } else (InvalidFormat(countryCode)).invalid
+}
+
 
   // 2. Copy-paste `checkUsernameSize` from `EitherExercises2` and adapt it to `Validation`.
   def checkUsernameSize(username: String): Validation[TooSmall, Unit] =
-    ???
+    Validation.cond(username.length >= 5, success = (), failure = TooSmall(username.length))
 
   // 3. Copy-paste `checkUsernameCharacters` from `EitherExercises2` and adapt it to `Validation`.
   def checkUsernameCharacters(username: String): Validation[InvalidCharacters, Unit] =
-    ???
+    username.toList.filterNot(isValidUsernameCharacter) match {
+      case Nil               => Valid(())
+      case invalidCharacters => InvalidCharacters(invalidCharacters).invalid
+    }
 
   def isValidUsernameCharacter(c: Char): Boolean =
     c.isLetter || c.isDigit || c == '_' || c == '-'

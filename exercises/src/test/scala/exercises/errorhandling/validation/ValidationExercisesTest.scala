@@ -9,19 +9,19 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 class ValidationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
-  ignore("validateCountry example") {
+  test("validateCountry example") {
     assert(validateCountry("FRA") == France.valid)
     assert(validateCountry("UK") == InvalidFormat("UK").invalid)
     assert(validateCountry("ARG") == NotSupported("ARG").invalid)
   }
 
-  ignore("checkUsernameSize example") {
+  test("checkUsernameSize example") {
     assert(checkUsernameSize("bob_2167") == ().valid)
     assert(checkUsernameSize("bob_2") == ().valid)
     assert(checkUsernameSize("bo") == TooSmall(2).invalid)
   }
 
-  ignore("checkUsernameCharacters example") {
+  test("checkUsernameCharacters example") {
     assert(checkUsernameCharacters("_abc-123_") == ().valid)
     assert(checkUsernameCharacters("foo!~23}AD") == InvalidCharacters(List('!', '~', '}')).invalid)
   }
