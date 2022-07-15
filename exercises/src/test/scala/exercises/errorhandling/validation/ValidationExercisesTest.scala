@@ -1,8 +1,10 @@
 package exercises.errorhandling.validation
 
 import exercises.errorhandling.NEL
+import exercises.errorhandling.validation.Validation.Invalid
 import exercises.errorhandling.validation.ValidationExercises.Country._
 import exercises.errorhandling.validation.ValidationExercises.FormError._
+import exercises.errorhandling.validation.ValidationExercises.FieldIds._
 import exercises.errorhandling.validation.ValidationExercises._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
@@ -35,9 +37,16 @@ class ValidationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyC
 
   test("validateUser example") {
     assert(validateUser("bob_2167", "FRA") == User(Username("bob_2167"), France).valid)
-    assert(validateUser("bob_2167", "UK") == InvalidFormat("UK").invalid)
-    assert(validateUser("bo", "FRA") == TooSmall(2).invalid)
-    assert(validateUser("b!", "UK") == NEL(TooSmall(2), InvalidCharacters(List('!')), InvalidFormat("UK")).invalid)
+    assert(validateUser("bob_2167", "UK") == FieldError(countryOfResidence, NEL(InvalidFormat("UK"))).invalid)
+    assert(validateUser("bo", "FRA") == FieldError(username, NEL(TooSmall(2))).invalid)
+    assert(
+      validateUser("b!", "UK") ==
+        Invalid(NEL(
+          FieldError(username, NEL(TooSmall(2), InvalidCharacters(List('!')))),
+          FieldError(countryOfResidence, NEL(InvalidFormat("UK")))
+          )
+        )
+    )
   }
 
 }

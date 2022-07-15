@@ -2,6 +2,7 @@ package exercises.errorhandling.validation
 
 import exercises.errorhandling.NEL
 import exercises.errorhandling.validation.Validation._
+import exercises.errorhandling.validation.ValidationExercises.FieldIds._
 import exercises.errorhandling.validation.ValidationExercises.FormError._
 
 object ValidationExercises {
@@ -68,9 +69,19 @@ object ValidationExercises {
       .zipWith((_, _) => Username(username))
 
   // 5. Implement `validateUser` so that it reports all errors.
-  def validateUser(usernameStr: String, countryStr: String): Validation[FormError, User] =
-    (validateUsername(usernameStr), validateCountry(countryStr))
-      .zipWith(User.apply)
+  def validateUser(usernameStr: String, countryStr: String): Validation[FieldError, User] =
+    (
+     field(username, validateUsername(usernameStr)),
+     field(countryOfResidence, validateCountry(countryStr))
+    )
+    .zipWith(User.apply)
+
+  def field[A](id: String, validation: Validation[FormError, A]): Validation[FieldError, A] = {
+    validation match {
+      case Valid(value)   => value.valid
+      case Invalid(formErrors) => FieldError(id, formErrors).invalid
+    }
+  }
 
   // 6. When validateUser` produces a `TooSmall(2)`, how do we know that it is about the username?
   // Update `validateUser` so that it groups all the errors by field (see `FieldError` below).
