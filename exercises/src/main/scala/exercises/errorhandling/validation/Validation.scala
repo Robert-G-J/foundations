@@ -85,7 +85,12 @@ object Validation {
   // Accumulate all errors.
   // sequence(List(1.invalid, 2.valid, 3.invalid)) == Invalid(Nel(1,3))
   def sequence[E, A](validations: List[Validation[E, A]]): Validation[E, List[A]] =
-    ???
+    validations
+      .foldLeft(Valid(Nil): Validation[E, List[A]]) { (state, validation) =>
+       state.zipWith(validation){ (tail: List[A], value: A) =>
+         value +: tail
+       }
+      }.map(_.reverse)
 
   // Alias for map + sequence
   def traverse[E, A, Next](values: List[A])(update: A => Validation[E, Next]): Validation[E, List[Next]] =
