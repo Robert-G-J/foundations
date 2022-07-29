@@ -17,7 +17,6 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     val order = Order(
       id = "AAA",
       status = Draft(basket.toList),
-      deliveryAddress = None,
       createdAt = Instant.now(),
       submittedAt = None,
       deliveredAt = None
@@ -25,7 +24,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
     order.checkout match {
       case Left(value)     => fail(s"Expected success but got $value")
-      case Right(newOrder) => assert(newOrder.status == Checkout(basket))
+      case Right(newOrder) => assert(newOrder.status == Checkout(basket, None))
     }
   }
 
@@ -33,7 +32,6 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     val order = Order(
       id = "AAA",
       status = Draft(Nil),
-      deliveryAddress = None,
       createdAt = Instant.now(),
       submittedAt = None,
       deliveredAt = None
@@ -44,24 +42,24 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
   test("checkout invalid status example") {
     val items = NEL(Item("A1", 2, 12.99))
+    val deliveryAddress = Address(1, "EX31")
     val order = Order(
       id = "AAA",
-      status = Delivered(items),
-      deliveryAddress = None,
+      status = Delivered(items, deliveryAddress),
       createdAt = Instant.now(),
       submittedAt = None,
       deliveredAt = None
     )
 
-    assert(order.checkout == Left(InvalidStatus(Delivered(items))))
+    assert(order.checkout == Left(InvalidStatus(Delivered(items, deliveryAddress))))
   }
 
   test("submit successful example") {
     val basket = NEL(Item("A1", 2, 12.99))
+    val deliveryAddress = Address(1, "EX31 8TR")
     val order = Order(
       id = "AAA",
-      status = Checkout(basket),
-      deliveryAddress = Some(Address(12, "E16 8TR")),
+      status = Checkout(basket, Some(deliveryAddress)),
       createdAt = Instant.now(),
       submittedAt = None,
       deliveredAt = None
@@ -69,7 +67,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
     order.submit(Instant.now()) match {
       case Left(value)     => fail(s"Expected success but got $value")
-      case Right(newOrder) => assert(newOrder.status == Submitted(basket))
+      case Right(newOrder) => assert(newOrder.status == Submitted(basket, deliveryAddress))
     }
   }
 
@@ -77,8 +75,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     val basket = NEL(Item("A1", 2, 12.99))
     val order = Order(
       id = "AAA",
-      status = Checkout(basket),
-      deliveryAddress = None,
+      status = Checkout(basket, None),
       createdAt = Instant.now(),
       submittedAt = None,
       deliveredAt = None
@@ -86,21 +83,21 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
     assert(
       order.submit(Instant.now()) == Left(MissingDeliveryAddress)
-    ) // replace ??? by the error you created for that scenario
+    )
   }
 
   test("submit invalid status example") {
     val basket = NEL(Item("A1", 2, 12.99))
+    val deliveryAddress = Address(12, "E16 8TR")
     val order = Order(
       id = "AAA",
-      status = Delivered(basket),
-      deliveryAddress = Some(Address(12, "E16 8TR")),
+      status = Delivered(basket, deliveryAddress),
       createdAt = Instant.now(),
       submittedAt = None,
       deliveredAt = None
     )
 
-    assert(order.submit(Instant.now()) == Left(InvalidStatus(Delivered(basket))))
+    assert(order.submit(Instant.now()) == Left(InvalidStatus(Delivered(basket, deliveryAddress))))
   }
 
  test("checkout is not allowed if order is in check, submitted or delivered status"){
@@ -134,8 +131,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
       result.map(_._1) == Right(
         Order(
           id = orderId,
-          status = Delivered(basket),
-          deliveryAddress = Some(deliveryAddress),
+          status = Delivered(basket, deliveryAddress),
           createdAt = createdAt,
           submittedAt = Some(submittedAt),
           deliveredAt = Some(deliveredAt)
@@ -164,8 +160,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
         result.map(_._1) == Right(
           Order(
             id = orderId,
-            status = Delivered(items),
-            deliveryAddress = Some(deliveryAddress),
+            status = Delivered(items, deliveryAddress),
             createdAt = createdAt,
             submittedAt = Some(submittedAt),
             deliveredAt = Some(deliveredAt)
