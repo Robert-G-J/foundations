@@ -1,6 +1,6 @@
 package exercises.errorhandling.project
 
-import exercises.errorhandling.project.OrderError.{EmptyBasket, InvalidStatus}
+import exercises.errorhandling.project.OrderError.{EmptyBasket, InvalidStatus, MissingDeliveryAddress}
 import exercises.errorhandling.project.OrderGenerator._
 import org.scalacheck.Gen
 import org.scalatest.funsuite.AnyFunSuite
@@ -10,7 +10,7 @@ import java.time.{Duration, Instant}
 
 class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
-  ignore("checkout successful example") {
+  test("checkout successful example") {
     val order = Order(
       id = "AAA",
       status = "Draft",
@@ -27,7 +27,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     }
   }
 
-  ignore("checkout empty basket example") {
+  test("checkout empty basket example") {
     val order = Order(
       id = "AAA",
       status = "Draft",
@@ -41,7 +41,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     assert(order.checkout == Left(EmptyBasket))
   }
 
-  ignore("checkout invalid status example") {
+  test("checkout invalid status example") {
     val order = Order(
       id = "AAA",
       status = "Delivered",
@@ -55,7 +55,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     assert(order.checkout == Left(InvalidStatus("Delivered")))
   }
 
-  ignore("submit successful example") {
+  test("submit successful example") {
     val order = Order(
       id = "AAA",
       status = "Checkout",
@@ -72,7 +72,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     }
   }
 
-  ignore("submit no address example") {
+  test("submit no address example") {
     val order = Order(
       id = "AAA",
       status = "Checkout",
@@ -83,10 +83,12 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
       deliveredAt = None
     )
 
-    assert(order.submit(Instant.now()) == Left(???)) // replace ??? by the error you created for that scenario
+    assert(
+      order.submit(Instant.now()) == Left(MissingDeliveryAddress)
+    ) // replace ??? by the error you created for that scenario
   }
 
-  ignore("submit invalid status example") {
+  test("submit invalid status example") {
     val order = Order(
       id = "AAA",
       status = "Delivered",
@@ -100,7 +102,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     assert(order.submit(Instant.now()) == Left(InvalidStatus("Delivered")))
   }
 
-  ignore("submit empty basket example") {
+  test("submit empty basket example") {
     val order = Order(
       id = "AAA",
       status = "Checkout",
@@ -114,7 +116,13 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     assert(order.submit(Instant.now()) == Left(EmptyBasket))
   }
 
-  ignore("happy path") {
+ test("checkout is not allowed if order is in check, submitted or delivered status"){
+   forAll(Gen.oneOf(checkoutGen, submittedGen, deliveredGen)){order =>
+      assert(order.checkout == Left(InvalidStatus(order.status)))
+   }
+ }
+
+  test("happy path") {
     val orderId         = "ORD0001"
     val createdAt       = Instant.now()
     val submittedAt     = createdAt.plusSeconds(5)
@@ -148,6 +156,38 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     )
 
     assert(result.map(_._2) == Right(Duration.ofHours(30)))
+  }
+
+  test("Order workflow pbt") {
+    forAll(orderIdGen, instantGen, durationGen, durationGen, nelOf(itemGen), addressGen){ (orderId, createdAt, submittedDelay, deliveredDelay, items, deliveryAddress) =>
+      val submittedAt     = createdAt.plus(submittedDelay)
+      val deliveredAt     = submittedAt.plus( deliveredDelay)
+      val order           = Order.empty(orderId, createdAt)
+
+      val result = for {
+        order         <- order.addItems(items)
+        order         <- order.checkout
+        order         <- order.updateDeliveryAddress(deliveryAddress)
+        order         <- order.submit(submittedAt)
+        orderDuration <- order.deliver(deliveredAt)
+      } yield orderDuration
+
+      assert(
+        result.map(_._1) == Right(
+          Order(
+            id = orderId,
+            status = "Delivered",
+            basket = items.toList,
+            deliveryAddress = Some(deliveryAddress),
+            createdAt = createdAt,
+            submittedAt = Some(submittedAt),
+            deliveredAt = Some(deliveredAt)
+          )
+        )
+      )
+
+      assert(result.map(_._2) == Right(deliveredDelay))
+    }
   }
 
 }
