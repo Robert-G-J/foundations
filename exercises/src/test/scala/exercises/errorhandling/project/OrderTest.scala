@@ -18,8 +18,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     val order = Order(
       id = "AAA",
       status = Draft(basket.toList),
-      createdAt = Instant.now(),
-      deliveredAt = None
+      createdAt = Instant.now()
     )
 
     order.checkout match {
@@ -32,8 +31,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     val order = Order(
       id = "AAA",
       status = Draft(Nil),
-      createdAt = Instant.now(),
-      deliveredAt = None
+      createdAt = Instant.now()
     )
 
     assert(order.checkout == Left(EmptyBasket))
@@ -43,26 +41,25 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     val items = NEL(Item("A1", 2, 12.99))
     val deliveryAddress = Address(1, "EX31")
     val submittedAt = Instant.EPOCH
+    val deliveredAt = submittedAt.plus(Duration.ofDays(200))
     val order = Order(
       id = "AAA",
-      status = Delivered(items, deliveryAddress, submittedAt),
-      createdAt = Instant.now(),
-      deliveredAt = None
+      status = Delivered(items, deliveryAddress, submittedAt, deliveredAt),
+      createdAt = Instant.now()
     )
 
-    assert(order.checkout == Left(InvalidStatus(Delivered(items, deliveryAddress, submittedAt))))
+    assert(order.checkout == Left(InvalidStatus(Delivered(items, deliveryAddress, submittedAt, deliveredAt))))
   }
 
   test("submit successful example") {
     val basket = NEL(Item("A1", 2, 12.99))
     val deliveryAddress = Address(1, "EX31 8TR")
     val createdAt = Instant.EPOCH
-    val submittedAt = (Instant.EPOCH).plus(Duration.ofDays(200))
+    val submittedAt = createdAt.plus(Duration.ofDays(200))
     val order = Order(
       id = "AAA",
       status = Checkout(basket, Some(deliveryAddress)),
-      createdAt = createdAt,
-      deliveredAt = None
+      createdAt = createdAt
     )
 
     order.submit(submittedAt) match {
@@ -77,8 +74,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     val order = Order(
       id = "AAA",
       status = Checkout(basket, None),
-      createdAt = Instant.now(),
-      deliveredAt = None
+      createdAt = Instant.now()
     )
 
     assert(
@@ -90,14 +86,14 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     val basket = NEL(Item("A1", 2, 12.99))
     val deliveryAddress = Address(12, "E16 8TR")
     val submittedAt = Instant.EPOCH
+    val deliveredAt = submittedAt.plus(Duration.ofDays(200))
     val order = Order(
       id = "AAA",
-      status = Delivered(basket, deliveryAddress, submittedAt),
-      createdAt = Instant.now(),
-      deliveredAt = None
+      status = Delivered(basket, deliveryAddress, submittedAt, deliveredAt),
+      createdAt = Instant.now()
     )
 
-    assert(order.submit(submittedAt) == Left(InvalidStatus(Delivered(basket, deliveryAddress, submittedAt))))
+    assert(order.submit(submittedAt) == Left(InvalidStatus(Delivered(basket, deliveryAddress, submittedAt, deliveredAt))))
   }
 
  test("checkout is not allowed if order is in check, submitted or delivered status"){
@@ -131,9 +127,8 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
       result.map(_._1) == Right(
         Order(
           id = orderId,
-          status = Delivered(basket, deliveryAddress, submittedAt),
-          createdAt = createdAt,
-          deliveredAt = Some(deliveredAt)
+          status = Delivered(basket, deliveryAddress, submittedAt, deliveredAt),
+          createdAt = createdAt
         )
       )
     )
@@ -159,9 +154,8 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
         result.map(_._1) == Right(
           Order(
             id = orderId,
-            status = Delivered(items, deliveryAddress, submittedAt),
-            createdAt = createdAt,
-            deliveredAt = Some(deliveredAt)
+            status = Delivered(items, deliveryAddress, submittedAt, deliveredAt),
+            createdAt = createdAt
           )
         )
       )

@@ -8,9 +8,8 @@ import java.time.{Duration, Instant}
 
 case class Order(
   id: String,
-  status: OrderStatus,         // "Draft", "Checkout", "Submitted" or "Delivered"
-  createdAt: Instant,          // set when the order is created ("Draft")
-  deliveredAt: Option[Instant] // set when the order is moved to "Delivered"
+  status: OrderStatus,
+  createdAt: Instant
 ) {
 
   // Adds an `Item` to the basket.
@@ -71,7 +70,7 @@ case class Order(
   def deliver(now: Instant): Either[OrderError, (Order, Duration)] =
     status match {
       case x: Submitted =>
-        val updatedOrder = copy(status = Delivered(x.basket, x.deliveryAddress, x.submittedAt), deliveredAt = Some(now))
+        val updatedOrder = copy(status = Delivered(x.basket, x.deliveryAddress, x.submittedAt, now))
         val duration     = Duration.between(x.submittedAt, now)
         Right(updatedOrder, duration)
       case _ => Left(InvalidStatus(status))
@@ -85,7 +84,6 @@ object Order {
     Order(
       id = id,
       status = Draft(List.empty),
-      createdAt = now,
-      deliveredAt = None
+      createdAt = now
     )
 }
