@@ -1,7 +1,7 @@
 package exercises.errorhandling.project
 import exercises.errorhandling.NEL
 
-import java.time.Instant
+import java.time.{Duration, Instant}
 
 sealed trait OrderStatus
 object OrderStatus {
@@ -9,6 +9,8 @@ object OrderStatus {
   case class Checkout(basket: NEL[Item], deliveryAddress: Option[Address])                extends OrderStatus
   case class Submitted(basket: NEL[Item], deliveryAddress: Address, submittedAt: Instant) extends OrderStatus
   case class Delivered(basket: NEL[Item], deliveryAddress: Address, submittedAt: Instant, deliveredAt: Instant)
-      extends OrderStatus
+      extends OrderStatus {
+    def deliveryDuration: Duration = Duration.between(submittedAt, deliveredAt)
+  }
 
 }

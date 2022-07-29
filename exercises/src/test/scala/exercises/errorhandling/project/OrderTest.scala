@@ -62,7 +62,7 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
       createdAt = createdAt
     )
 
-    order.submit(submittedAt) match {
+    order.submit(submittedAt, deliveryAddress) match {
       case Left(value)     => fail(s"Expected success but got $value")
       case Right(newOrder) => assert(newOrder.status == Submitted(basket, deliveryAddress, submittedAt))
     }
