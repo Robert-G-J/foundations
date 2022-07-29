@@ -3,12 +3,13 @@ package exercises.errorhandling.project
 import exercises.errorhandling.NEL
 import exercises.errorhandling.project.OrderStatus.{Checkout, Delivered, Draft, Submitted}
 import org.scalacheck.Gen
+import org.scalacheck.Gen.alphaNumStr
 
 import java.time.{Duration, Instant}
 
 object OrderGenerator {
 
-  val orderIdGen: Gen[String] = Gen.alphaNumStr
+  val orderIdGen: Gen[OrderId] = Gen.alphaNumStr.map(OrderId(_))
   val itemIdGen: Gen[String]  = Gen.alphaNumStr
 
   val instantGen: Gen[Instant] =

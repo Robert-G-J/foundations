@@ -6,8 +6,10 @@ import exercises.errorhandling.NEL
 
 import java.time.{Duration, Instant}
 
+case class OrderId(value: String)
+
 case class Order(
-  id: String,
+  id: OrderId,
   status: OrderStatus,
   createdAt: Instant
 ) {
@@ -62,7 +64,7 @@ object Order {
   // Creates an empty draft order.
   def empty(id: String, now: Instant): Order =
     Order(
-      id = id,
+      id = OrderId(id),
       status = Draft(List.empty),
       createdAt = now
     )
