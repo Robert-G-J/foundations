@@ -8,10 +8,9 @@ import java.time.{Duration, Instant}
 
 case class Order(
   id: String,
-  status: OrderStatus,              // "Draft", "Checkout", "Submitted" or "Delivered"
-  createdAt: Instant,               // set when the order is created ("Draft")
-  submittedAt: Option[Instant],     // set when the order is moved to "Submitted"
-  deliveredAt: Option[Instant]      // set when the order is moved to "Delivered"
+  status: OrderStatus,         // "Draft", "Checkout", "Submitted" or "Delivered"
+  createdAt: Instant,          // set when the order is created ("Draft")
+  deliveredAt: Option[Instant] // set when the order is moved to "Delivered"
 ) {
 
   // Adds an `Item` to the basket.
@@ -56,12 +55,11 @@ case class Order(
     status match {
       case x: Checkout =>
         x.deliveryAddress match {
-          case None        => Left(MissingDeliveryAddress)
-          case Some(address) =>Right(copy(status = Submitted(x.basket, address), submittedAt = Some(now)))
+          case None          => Left(MissingDeliveryAddress)
+          case Some(address) => Right(copy(status = Submitted(x.basket, address, now)))
         }
       case _ => Left(InvalidStatus(status))
     }
-
 
   // 3. Implement `deliver` which attempts to move the `Order` to "Delivered" status.
   // `deliver` requires the order to be in the "Submitted" status.
@@ -73,16 +71,12 @@ case class Order(
   def deliver(now: Instant): Either[OrderError, (Order, Duration)] =
     status match {
       case x: Submitted =>
-        submittedAt match {
-          case None            => Left(MissingSubmittedAtTimestamp)
-          case Some(timestamp) =>
-            // data model doesn't tell us that submitted at is safe to just 'get'
-            val updatedOrder = copy(status = Delivered(x.basket, x.deliveryAddress), deliveredAt = Some(now))
-            val duration     = Duration.between(timestamp, now)
-            Right(updatedOrder, duration)
-        }
+        val updatedOrder = copy(status = Delivered(x.basket, x.deliveryAddress, x.submittedAt), deliveredAt = Some(now))
+        val duration     = Duration.between(x.submittedAt, now)
+        Right(updatedOrder, duration)
       case _ => Left(InvalidStatus(status))
     }
+
 }
 
 object Order {
@@ -92,7 +86,6 @@ object Order {
       id = id,
       status = Draft(List.empty),
       createdAt = now,
-      submittedAt = None,
       deliveredAt = None
     )
 }

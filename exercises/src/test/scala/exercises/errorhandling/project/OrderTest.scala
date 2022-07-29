@@ -6,6 +6,7 @@ import exercises.errorhandling.project.OrderGenerator._
 import exercises.errorhandling.project.OrderStatus._
 import org.scalacheck.Gen
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.time.Days
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import java.time.{Duration, Instant}
@@ -18,7 +19,6 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
       id = "AAA",
       status = Draft(basket.toList),
       createdAt = Instant.now(),
-      submittedAt = None,
       deliveredAt = None
     )
 
@@ -33,7 +33,6 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
       id = "AAA",
       status = Draft(Nil),
       createdAt = Instant.now(),
-      submittedAt = None,
       deliveredAt = None
     )
 
@@ -43,61 +42,62 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
   test("checkout invalid status example") {
     val items = NEL(Item("A1", 2, 12.99))
     val deliveryAddress = Address(1, "EX31")
+    val submittedAt = Instant.EPOCH
     val order = Order(
       id = "AAA",
-      status = Delivered(items, deliveryAddress),
+      status = Delivered(items, deliveryAddress, submittedAt),
       createdAt = Instant.now(),
-      submittedAt = None,
       deliveredAt = None
     )
 
-    assert(order.checkout == Left(InvalidStatus(Delivered(items, deliveryAddress))))
+    assert(order.checkout == Left(InvalidStatus(Delivered(items, deliveryAddress, submittedAt))))
   }
 
   test("submit successful example") {
     val basket = NEL(Item("A1", 2, 12.99))
     val deliveryAddress = Address(1, "EX31 8TR")
+    val createdAt = Instant.EPOCH
+    val submittedAt = (Instant.EPOCH).plus(Duration.ofDays(200))
     val order = Order(
       id = "AAA",
       status = Checkout(basket, Some(deliveryAddress)),
-      createdAt = Instant.now(),
-      submittedAt = None,
+      createdAt = createdAt,
       deliveredAt = None
     )
 
-    order.submit(Instant.now()) match {
+    order.submit(submittedAt) match {
       case Left(value)     => fail(s"Expected success but got $value")
-      case Right(newOrder) => assert(newOrder.status == Submitted(basket, deliveryAddress))
+      case Right(newOrder) => assert(newOrder.status == Submitted(basket, deliveryAddress, submittedAt))
     }
   }
 
   test("submit no address example") {
     val basket = NEL(Item("A1", 2, 12.99))
+    val submittedAt = Instant.EPOCH
     val order = Order(
       id = "AAA",
       status = Checkout(basket, None),
       createdAt = Instant.now(),
-      submittedAt = None,
       deliveredAt = None
     )
 
     assert(
-      order.submit(Instant.now()) == Left(MissingDeliveryAddress)
+      order.submit(submittedAt) == Left(MissingDeliveryAddress)
     )
   }
 
   test("submit invalid status example") {
     val basket = NEL(Item("A1", 2, 12.99))
     val deliveryAddress = Address(12, "E16 8TR")
+    val submittedAt = Instant.EPOCH
     val order = Order(
       id = "AAA",
-      status = Delivered(basket, deliveryAddress),
+      status = Delivered(basket, deliveryAddress, submittedAt),
       createdAt = Instant.now(),
-      submittedAt = None,
       deliveredAt = None
     )
 
-    assert(order.submit(Instant.now()) == Left(InvalidStatus(Delivered(basket, deliveryAddress))))
+    assert(order.submit(submittedAt) == Left(InvalidStatus(Delivered(basket, deliveryAddress, submittedAt))))
   }
 
  test("checkout is not allowed if order is in check, submitted or delivered status"){
@@ -131,9 +131,8 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
       result.map(_._1) == Right(
         Order(
           id = orderId,
-          status = Delivered(basket, deliveryAddress),
+          status = Delivered(basket, deliveryAddress, submittedAt),
           createdAt = createdAt,
-          submittedAt = Some(submittedAt),
           deliveredAt = Some(deliveredAt)
         )
       )
@@ -160,9 +159,8 @@ class OrderTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
         result.map(_._1) == Right(
           Order(
             id = orderId,
-            status = Delivered(items, deliveryAddress),
+            status = Delivered(items, deliveryAddress, submittedAt),
             createdAt = createdAt,
-            submittedAt = Some(submittedAt),
             deliveredAt = Some(deliveredAt)
           )
         )
