@@ -1,6 +1,7 @@
 package exercises.errorhandling.project
 
 import exercises.errorhandling.NEL
+import exercises.errorhandling.project.OrderStatus.{Checkout, Delivered, Draft, Submitted}
 import org.scalacheck.Gen
 
 import java.time.{Duration, Instant}
@@ -45,37 +46,37 @@ object OrderGenerator {
       orderId   <- orderIdGen
       createdAt <- instantGen
       items     <- Gen.listOf(itemGen)
-    } yield Order(orderId, "Draft", items, None, createdAt, None, None)
+    } yield Order(orderId, Draft(items), None, createdAt, None, None)
 
   val checkoutGen: Gen[Order] =
     for {
       orderId   <- orderIdGen
       createdAt <- instantGen
-      items     <- Gen.listOf(itemGen)
+      items     <- nelOf(itemGen)
       address   <- Gen.option(addressGen)
-    } yield Order(orderId, "Checkout", items, address, createdAt, None, None)
+    } yield Order(orderId, Checkout(items), address, createdAt, None, None)
 
   val submittedGen: Gen[Order] =
     for {
       orderId   <- orderIdGen
       createdAt <- instantGen
-      items     <- Gen.listOf(itemGen)
+      items     <- nelOf(itemGen)
       address   <- addressGen
       delay     <- durationGen
       submittedAt = createdAt.plus(delay)
-    } yield Order(orderId, "Submitted", items, Some(address), createdAt, Some(submittedAt), None)
+    } yield Order(orderId, Submitted(items), Some(address), createdAt, Some(submittedAt), None)
 
   val deliveredGen: Gen[Order] =
     for {
       orderId   <- orderIdGen
       createdAt <- instantGen
-      items     <- Gen.listOf(itemGen)
+      items     <- nelOf(itemGen)
       address   <- addressGen
       delay1    <- durationGen
       submittedAt = createdAt.plus(delay1)
       delay2 <- durationGen
       deliveredAt = submittedAt.plus(delay2)
-    } yield Order(orderId, "Delivered", items, Some(address), createdAt, Some(submittedAt), Some(deliveredAt))
+    } yield Order(orderId, Delivered(items), Some(address), createdAt, Some(submittedAt), Some(deliveredAt))
 
   val orderGen: Gen[Order] =
     Gen.oneOf(draftGen, checkoutGen, submittedGen, deliveredGen)
